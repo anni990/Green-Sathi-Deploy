@@ -16,7 +16,7 @@ pytesseract==0.3.10
 scikit-learn==1.6.0
 mysql-connector-python==8.1.0
 PyMySQL==1.1.0
-Gunicorn==21.2.0
+gunicorn==21.2.0
 python-dotenv==1.0.0
 requests==2.31.0
 omegaconf==2.3.0
