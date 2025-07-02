@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fertilizer Recommendation Report</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 0;
+        }
+
+        .report-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .report-title {
+            color: #166534;
+            margin: 0;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #166534;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #15803d;
+        }
+
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+
+        .icon-margin {
+            margin-right: 0.5rem;
+        }
+
+        .print-only {
+            display: none;
+        }
+
+        /* Collapsible styles */
+        .collapsible {
+            cursor: pointer;
+            padding: 1rem;
+            width: 100%;
+            text-align: left;
+            outline: none;
+            transition: 0.4s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 0.375rem;
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+        }
+
+        .collapsible:hover {
+            background-color: #e5e7eb;
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .chart-wrapper {
+            border-radius: 0.5rem;
+            background-color: white;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .chart-wrapper:hover {
+            transform: translateY(-5px);
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            .print-only {
+                display: block;
+            }
+
+            .report-container {
+                margin: 0;
+                padding: 1rem;
+                max-width: 100%;
+                box-shadow: none;
+            }
+
+            body {
+                background-color: white;
+            }
+
+            .collapsible-content {
+                max-height: none !important;
+                overflow: visible;
+            }
+        }
+
+        /* Hide the Google Translate logo */
+        .goog-logo-link,
+        .goog-te-gadget span {
+            display: none !important;
+        }
+
+        /* Resize the dropdown */
+        #google_translate_element select {
+            background-color: #f8f9fa;
+            color: #000;
+            border: 1px solid #ccc;
+            padding: 5px;
+            font-size: 14px;
+            border-radius: 4px;
+            width: auto;
+            height: auto;
+        }
+
+        /* Optional: center the element */
+        #google_translate_element {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="report-container">
+        <div class="report-header">
+            <h1 class="report-title text-2xl font-bold">Fertilizer Recommendation Report</h1>
+            <div class="text-sm text-gray-500">Report ID: {{ data.report_id }}</div>
+        </div>
+
+
+
+
+
+        <div class="action-buttons no-print mb-6 flex gap-2">
+            <button class="btn btn-primary" id="downloadPdfBtn">
+                <i class="fas fa-file-pdf icon-margin"></i> Download PDF
+            </button>
+            <button class="btn btn-secondary" onclick="window.print()">
+                <i class="fas fa-print icon-margin"></i> Print
+            </button>
+            <button class="btn btn-secondary" onclick="window.close()">
+                <i class="fas fa-times icon-margin"></i> Close
+            </button>
+            <div id="google_translate_element"></div>
+        </div>
+        <div class="flex justify-end gap-2 mb-4">
+            <button class="text-sm px-3 py-1 rounded bg-green-500 hover:bg-green-800 text-white"
+                onclick="readFullReport()">
+                <i class="fas fa-volume-up mr-1"></i> Read Full Report
+            </button>
+
+            <button class="text-sm px-3 py-1 rounded bg-red-500 hover:bg-red-700 text-white"
+                onclick="stopReading()">
+                <i class="fas fa-stop mr-1"></i> Stop Reading
+            </button>
+        </div>
+
+        <!-- Farmer and Crop Information -->
+        <div class="bg-green-50 p-4 rounded-lg border border-green-200 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <h3 class="text-green-800 font-semibold mb-2">Farmer Details</h3>
+                    <p class="text-gray-700"><span class="font-medium">Name:</span> {{ data.farmer_name }}</p>
+                    <p class="text-gray-700"><span class="font-medium">District:</span> {{ data.district or 'N/A' }}</p>
+                    <p class="text-gray-700"><span class="font-medium">State:</span> {{ data.state or 'N/A' }}</p>
+                </div>
+                <div>
+                    <h3 class="text-green-800 font-semibold mb-2">Crop Information</h3>
+                    <!-- Highlight the recommended crop such that make the background color of the text green-->
+                    <div class="text-yellow-700 bg-yellow-100 p-1 rounded-md border border-yellow-200 border-radius-md"
+                        <p><span class="font-medium ">Recommended Crop : {{ data.crop or 'N/A'}}</span></p>
+                        <p><span class="font-medium">Report Date:</span> {{ data.report_date }}
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-green-800 font-semibold mb-2">Report Summary</h3>
+                    <div class="bg-white p-2 rounded border border-green-100">
+                        {% if data.json_report and data.json_report.special_recommendations %}
+                        <ul class="list-disc pl-5 text-sm">
+                            {% for rec in data.json_report.special_recommendations %}
+                            <li class="mb-1">{{ rec }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-gray-600 text-sm">No special recommendations available</p>
+                        {% endif %}
+
+                        {% if data.summary %}
+                        <div class="mt-2 pt-2 border-t border-green-100">
+                            <p class="text-sm font-medium text-green-800">{{ data.summary }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Soil Test Results and Charts -->
+        {% if data.json_report and data.json_report.soil_test_results %}
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">Soil Test Results</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-4 rounded-lg shadow-lg overflow-auto border border-gray-200">
+                    <table class="min-w-full table-auto">
+                        <thead>
+                            <tr class="bg-gray-50 text-left">
+                                <th class="py-2 px-3 text-gray-700 font-medium">Parameter</th>
+                                <th class="py-2 px-3 text-gray-700 font-medium">Value</th>
+                                <th class="py-2 px-3 text-gray-700 font-medium">Classification</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in data.json_report.soil_test_results %}
+                            <tr class="border-t">
+                                <td class="py-2 px-3 text-gray-700">{{ result.parameter }}</td>
+                                <td class="py-2 px-3 font-medium">{{ result.value }}</td>
+                                <td class="py-2 px-3">
+                                    {% if result.classification == 'Normal' or result.classification == 'High' %}
+                                    <span
+                                        class="px-2 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">{{
+                                        result.classification }}</span>
+                                    {% elif result.classification == 'Medium' %}
+                                    <span
+                                        class="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium">{{
+                                        result.classification }}</span>
+                                    {% elif result.classification == 'Low' %}
+                                    <span class="px-2 py-1 rounded-full bg-red-100 text-red-800 text-sm font-medium">{{
+                                        result.classification }}</span>
+                                    {% else %}
+                                    <span
+                                        class="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-sm font-medium">{{
+                                        result.classification }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Soil Charts Section -->
+                <div class="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                    <div class="mb-2">
+                        <h3 class="text-md font-semibold text-gray-700">Soil Parameters Overview</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="soilRadarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Soil Charts -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                <div class="chart-wrapper bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2">NPK Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="npkPieChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-wrapper bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2">Micronutrients (ppm)</h3>
+                    <div class="chart-container">
+                        <canvas id="micronutrientsPieChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-wrapper bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2">pH, EC & OC Levels</h3>
+                    <div class="chart-container">
+                        <canvas id="basicPropertiesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Nutrient Deficiency Analysis -->
+        {% if data.json_report and data.json_report.deficiency_analysis %}
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">Nutrient Deficiency Analysis</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                    <div class="overflow-auto">
+                        <table class="min-w-full table-auto">
+                            <thead>
+                                <tr class="bg-gray-50 text-left">
+                                    <th class="py-2 px-3 text-gray-700 font-medium">Nutrient</th>
+                                    <th class="py-2 px-3 text-gray-700 font-medium">Deficiency (kg/ha)</th>
+                                    <th class="py-2 px-3 text-gray-700 font-medium">Severity</th>
+                                    <!-- <th class="py-2 px-3 text-gray-700 font-medium">Impact</th> -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deficiency in data.json_report.deficiency_analysis %}
+                                <tr class="border-t">
+                                    <td class="py-2 px-3 font-medium">{{ deficiency.nutrient }}</td>
+                                    <td class="py-2 px-3">{{ deficiency.deficiency }}</td>
+                                    <td class="py-2 px-3">
+                                        {% if deficiency.severity == 'OPTIMAL' %}
+                                        <span
+                                            class="px-2 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">{{
+                                            deficiency.severity }}</span>
+                                        {% elif deficiency.severity == 'MODERATE' %}
+                                        <span
+                                            class="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-medium">{{
+                                            deficiency.severity }}</span>
+                                        {% elif deficiency.severity == 'CRITICAL' %}
+                                        <span
+                                            class="px-2 py-1 rounded-full bg-red-100 text-red-800 text-xs font-medium">{{
+                                            deficiency.severity }}</span>
+                                        {% else %}
+                                        <span
+                                            class="px-2 py-1 rounded-full bg-gray-100 text-gray-800 text-xs font-medium">{{
+                                            deficiency.severity }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <!-- <td class="py-2 px-3">
+                                        {% if deficiency.impact == 'Critical' %}
+                                            <span class="text-red-600">{{ deficiency.impact }}</span>
+                                        {% else %}
+                                            <span class="text-green-600">{{ deficiency.impact }}</span>
+                                        {% endif %}
+                                    </td> -->
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Deficiency Chart -->
+                <div class="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                    <div class="mb-2">
+                        <h3 class="text-md font-semibold text-gray-700">Nutrient Deficiency Levels</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="deficiencyBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Deficiency Visualization -->
+            <div class="mt-6">
+                <div class="chart-wrapper bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2">Deficiency Severity Analysis</h3>
+                    <div class="chart-container">
+                        <canvas id="deficiencySeverityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Fertilizer Recommendations -->
+        {% if data.json_report and data.json_report.fertilizer_recommendations %}
+        <div class="mb-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">Fertilizer Recommendations</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                    <div class="overflow-auto">
+                        <table class="min-w-full table-auto">
+                            <thead>
+                                <tr class="bg-gray-50 text-left">
+                                    <th class="py-2 px-3 text-gray-700 font-medium">Product</th>
+                                    <th class="py-2 px-3 text-gray-700 font-medium">Dose</th>
+                                    <th class="py-2 px-3 text-gray-700 font-medium">Application</th>
+                                    <!-- <th class="py-2 px-3 text-gray-700 font-medium">Purpose</th> -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rec in data.json_report.fertilizer_recommendations %}
+                                <tr class="border-t">
+                                    <td class="py-2 px-3 font-medium text-green-700">
+                                        {% if rec.type == 'Soil Amendment' %}
+                                        <span class="inline-block mr-2"><i
+                                                class="fas fa-seedling text-green-500"></i></span>
+                                        {% else %}
+                                        <span class="inline-block mr-2"><i
+                                                class="fas fa-flask text-blue-500"></i></span>
+                                        {% endif %}
+                                        {{ rec.product or rec.fertilizer }}
+                                    </td>
+                                    <td class="py-2 px-3">
+                                        {% if rec.dose %}
+                                        {{ rec.dose }}
+                                        {% elif rec.dose_kg_ha %}
+                                        {{ rec.dose_kg_ha }} kg/ha
+                                        <br><span class="text-sm text-gray-500">{{ rec.quantity }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-2 px-3">
+                                        {% if rec.application %}
+                                        {{ rec.application }}
+                                        {% else %}
+                                        <ul class="list-disc pl-5 text-sm">
+                                            {% for nutrient, amount in rec.covers.items() %}
+                                            <li>{{ nutrient }}: {{ amount }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                        {% endif %}
+                                    </td>
+                                    <!-- <td class="py-2 px-3">{{ rec.purpose or 'Nutrient supply' }}</td> -->
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Fertilizer Recommendation Chart -->
+                <div class="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                    <div class="mb-2">
+                        <h3 class="text-md font-semibold text-gray-700">Fertilizer Application Chart</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="fertilizerDoseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nutrient Coverage Visualization -->
+            <div class="mt-6">
+                <div class="chart-wrapper bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+                    <h3 class="text-md font-semibold text-gray-700 mb-2">Nutrient Coverage by Recommended Fertilizers
+                    </h3>
+                    <div class="chart-container">
+                        <canvas id="nutrientCoverageChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Crop Management Guide (Collapsible) -->
+        {% if data.crop_data %}
+        <div class="mb-6">
+            <button class="collapsible">
+                <h2 class="text-xl font-bold text-gray-800">Show Crop Management Guide</h2>
+                <i class="fas fa-chevron-down text-gray-500"></i>
+            </button>
+            <div class="collapsible-content bg-white p-4 rounded-lg shadow-sm mt-2">
+                {% if data.crop_data.Diseases %}
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-green-700 mb-2">Common Diseases</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {% for disease_name, disease_info in data.crop_data.Diseases.items() %}
+                        <div class="p-3 border rounded-md bg-red-50 border-red-100">
+                            <h4 class="font-medium text-red-800">{{ disease_name }}</h4>
+                            <ul class="mt-1 text-sm">
+                                {% for key, value in disease_info.items() %}
+                                <li><span class="font-medium">{{ key }}:</span> {{ value }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if data.crop_data["Insect Pests"] %}
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-green-700 mb-2">Insect Pests</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {% for pest_name, pest_info in data.crop_data["Insect Pests"].items() %}
+                        <div class="p-3 border rounded-md bg-orange-50 border-orange-100">
+                            <h4 class="font-medium text-orange-800">{{ pest_name }}</h4>
+                            <ul class="mt-1 text-sm">
+                                {% for key, value in pest_info.items() %}
+                                <li><span class="font-medium">{{ key }}:</span> {{ value }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if data.crop_data["Nutrient Deficiencies"] %}
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-green-700 mb-2">Nutrient Deficiencies</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {% for nutrient, info in data.crop_data["Nutrient Deficiencies"].items() %}
+                        <div class="p-3 border rounded-md bg-blue-50 border-blue-100">
+                            <h4 class="font-medium text-blue-800">{{ nutrient }}</h4>
+                            <ul class="mt-1 text-sm">
+                                {% for key, value in info.items() %}
+                                <li><span class="font-medium">{{ key }}:</span> {{ value }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Add other crop data sections as needed -->
+                {% for section_name, section_data in data.crop_data.items() %}
+                {% if section_name not in ['Diseases', 'Insect Pests', 'Nutrient Deficiencies'] and section_data is
+                mapping %}
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-green-700 mb-2">{{ section_name }}</h3>
+                    <div class="p-3 border rounded-md bg-gray-50">
+                        <ul class="mt-1">
+                            {% for key, value in section_data.items() %}
+                            <li class="mb-1"><span class="font-medium">{{ key }}:</span> {{ value }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Create a data element with pre-processed JSON -->
+    <script id="chart-data" type="application/json">
+        {
+            "reportId": "{{ data.report_id }}",
+            "soilTestResults": [
+                {% if data.json_report and data.json_report.soil_test_results %}
+                    {% for result in data.json_report.soil_test_results %}
+                        {
+                            "parameter": "{{ result.parameter }}",
+                            "value": {{ result.value }},
+                            "status": "{{ result.status }}",
+                            "classification": "{{ result.classification }}"
+                        }{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                {% endif %}
+            ],
+            "deficiencyAnalysis": [
+                {% if data.json_report and data.json_report.deficiency_analysis %}
+                    {% for deficiency in data.json_report.deficiency_analysis %}
+                        {
+                            "nutrient": "{{ deficiency.nutrient }}",
+                            "deficiency": {{ deficiency.deficiency }},
+                            "severity": "{{ deficiency.severity }}",
+                            "impact": "{{ deficiency.impact }}"
+                        }{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                {% endif %}
+            ],
+            "fertilizerRecommendations": [
+                {% if data.json_report and data.json_report.fertilizer_recommendations %}
+                    {% for rec in data.json_report.fertilizer_recommendations %}
+                        {
+                            "product": "{{ rec.product or rec.fertilizer }}",
+                            "dose": "{{ rec.dose or rec.dose_kg_ha or 0 }}",
+                            "type": "{{ rec.type or 'Fertilizer' }}",
+                            "purpose": "{{ rec.purpose or 'Nutrient supply' }}"
+                            {% if rec.covers %}
+                            , "covers": {
+                                {% for nutrient, amount in rec.covers.items() %}
+                                    "{{ nutrient }}": "{{ amount }}"{% if not loop.last %},{% endif %}
+                                {% endfor %}
+                            }
+                            {% endif %}
+                        }{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                {% endif %}
+            ]
+        }
+    </script>
+
+    <script src="/static/js/fertilizer-charts.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Parse the pre-rendered JSON data
+            const chartDataElement = document.getElementById('chart-data');
+            const data = JSON.parse(chartDataElement.textContent);
+
+            // PDF Download button
+            document.getElementById('downloadPdfBtn').addEventListener('click', function () {
+                window.location.href = '/api/fertilizer_report/' + data.reportId + '/pdf';
+            });
+
+            // Set up collapsible sections
+            const collapsibles = document.getElementsByClassName('collapsible');
+            for (let i = 0; i < collapsibles.length; i++) {
+                collapsibles[i].addEventListener('click', function () {
+                    this.classList.toggle('active');
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('i');
+
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                        icon.classList.remove('fa-chevron-up');
+                        icon.classList.add('fa-chevron-down');
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        icon.classList.remove('fa-chevron-down');
+                        icon.classList.add('fa-chevron-up');
+                    }
+                });
+            }
+
+            // Initialize charts if external script fails to load
+            if (typeof initializeCharts === 'function') {
+                initializeCharts(data);
+            } else {
+                console.warn('Chart initialization function not found. Using fallback.');
+                initializeFallbackCharts(data);
+            }
+        });
+
+        // Fallback chart initialization if external script fails
+        function initializeFallbackCharts(data) {
+            // Simple bar chart for soil parameters
+            if (data.soilTestResults && data.soilTestResults.length > 0) {
+                const soilParams = data.soilTestResults.filter(item =>
+                    ['pH', 'OC (%)', 'EC (dS/m)', 'Nitrogen (kg/ha)', 'Phosphorus (kg/ha)', 'Potassium (kg/ha)', 'Zinc (ppm)', 'Iron (ppm)'].includes(item.parameter)
+                );
+
+                const ctx = document.getElementById('soilRadarChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: soilParams.map(item => item.parameter),
+                        datasets: [{
+                            label: 'Soil Parameters',
+                            data: soilParams.map(item => item.value),
+                            backgroundColor: soilParams.map(item => {
+                                if (item.status === 'OPTIMAL') return '#10B981';
+                                if (item.status === 'MODERATE') return '#F59E0B';
+                                if (item.status === 'CRITICAL') return '#EF4444';
+                                return '#6B7280';
+                            }),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    afterLabel: function (context) {
+                                        const item = soilParams[context.dataIndex];
+                                        return `Status: ${item.status}`;
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 1500,
+                            easing: 'easeOutQuart'
+                        }
+                    }
+                });
+            }
+        }
+
+    </script>
+
+    <script>
+        function readFullReport() {
+            const synth = window.speechSynthesis;
+
+            const farmerName = Array.from(document.querySelectorAll('p')).find(p =>
+                p.innerText.includes("Name:")
+            )?.innerText || '';
+            const district = Array.from(document.querySelectorAll('p')).find(p =>
+                p.innerText.includes("District:")
+            )?.innerText || '';
+            const state = Array.from(document.querySelectorAll('p')).find(p =>
+                p.innerText.includes("State:")
+            )?.innerText || '';
+            const crop = document.querySelector('.bg-yellow-100 span')?.innerText || '';
+            const summary = document.querySelector('.text-sm.font-medium.text-green-800')?.innerText || '';
+
+            let soilSummary = '';
+            document.querySelectorAll('table tbody tr').forEach(row => {
+                const cols = row.querySelectorAll('td');
+                if (cols.length === 3) {
+                    const param = cols[0].innerText;
+                    const value = cols[1].innerText;
+                    const classification = cols[2].innerText;
+                    soilSummary += `Parameter ${param} is ${value}, classified as ${classification}. `;
+                }
+            });
+
+            const fullSummary = `
+            Hello. This is your complete fertilizer recommendation report.
+            Report for ${farmerName}, from ${district}, ${state}.
+            Recommended crop is ${crop}.
+            Summary: ${summary}.
+            Based on the soil test: ${soilSummary}
+            Thank you for using AI Green Sathi.
+        `;
+
+            const utter = new SpeechSynthesisUtterance(fullSummary);
+            utter.lang = 'en-IN';
+            synth.speak(utter);
+        }
+
+        function stopReading() {
+            window.speechSynthesis.cancel();
+        }
+
+    </script>
+
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'en',
+                    includedLanguages: 'en,hi,mr,bn,ta,te,kn,gu,ur,ml,pa',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false
+                },
+                'google_translate_element'
+            );
+        }
+    </script>
+
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Crop for Auction - Green Sathi{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold text-gray-800">Add Crop for Auction</h1>
+        <p class="text-gray-600 mt-2">List your crop for sale and connect with dealers</p>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="farmer-gradient text-white p-4 text-center">
+            <i class="fa-solid fa-seedling text-3xl mb-2"></i>
+            <h2 class="text-lg font-semibold">फसल की जानकारी दें (Add Crop Details)</h2>
+        </div>
+        
+        <form method="POST" action="{{ url_for('add_crop') }}" enctype="multipart/form-data" class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="mb-4">
+                    <label for="commodity" class="block text-sm font-medium text-gray-700 mb-1">Commodity</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-wheat-awn text-gray-400"></i>
+                        </div>
+                        <select id="commodity" name="commodity_id" required 
+                                class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
+                            <option value="">Select Commodity</option>
+                            {% for commodity in commodities %}
+                            <option value="{{ commodity.id }}">{{ commodity.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-scale-balanced text-gray-400"></i>
+                        </div>
+                        <input type="number" id="quantity" name="quantity" required 
+                               class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10" 
+                               placeholder="Enter quantity">
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="unit" class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-ruler text-gray-400"></i>
+                        </div>
+                        <select id="unit" name="unit" required 
+                                class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
+                            <option value="kg">Kilograms (kg)</option>
+                            <option value="quintal">Quintal</option>
+                            <option value="ton">Metric Ton</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="base_price" class="block text-sm font-medium text-gray-700 mb-1">Base Price (₹)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-indian-rupee-sign text-gray-400"></i>
+                        </div>
+                        <input type="number" id="base_price" name="base_price" required 
+                               class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10" 
+                               placeholder="Enter base price per unit">
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="district" class="block text-sm font-medium text-gray-700 mb-1">District</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-location-dot text-gray-400"></i>
+                        </div>
+                        <select id="district" name="district_id" required 
+                                class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
+                            <option value="">Select District</option>
+                            {% for district in districts %}
+                            <option value="{{ district.id }}">{{ district.name }}, {{ district.state }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="expected_date" class="block text-sm font-medium text-gray-700 mb-1">Expected Harvest Date</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-calendar text-gray-400"></i>
+                        </div>
+                        <input type="date" id="expected_date" name="expected_date" required 
+                               class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea id="description" name="description" rows="3" 
+                          class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm" 
+                          placeholder="Add details about your crop (quality, variety, etc.)"></textarea>
+            </div>
+            
+            <div class="mb-4">
+                <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Crop Image</label>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div class="space-y-1 text-center">
+                        <i class="fa-solid fa-image text-gray-400 text-3xl mb-2"></i>
+                        <div class="flex text-sm text-gray-600">
+                            <label for="image" class="relative cursor-pointer bg-white rounded-md font-medium text-farmer-green-600 hover:text-farmer-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-farmer-green-500">
+                                <span>Upload a file</span>
+                                <input id="image" name="image" type="file" class="sr-only" accept="image/*" onchange="previewImage(this)">
+                            </label>
+                            <p class="pl-1">or drag and drop</p>
+                        </div>
+                        <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+                </div>
+                <!-- Image Preview -->
+                <div id="imagePreview" class="mt-4 hidden">
+                    <img id="preview" src="" alt="Preview" class="max-w-xs mx-auto rounded-lg shadow-md">
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <button type="submit" 
+                        class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-farmer-green-600 hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                    <i class="fa-solid fa-plus mr-2"></i>
+                    Add Crop for Auction
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('preview');
+    const previewDiv = document.getElementById('imagePreview');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            previewDiv.classList.remove('hidden');
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.src = '';
+        previewDiv.classList.add('hidden');
+    }
+}
+</script>
+{% endblock %} 

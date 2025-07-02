@@ -1,0 +1,971 @@
+{% extends 'base.html' %}
+
+{% block title %}Weather Forecast - Green Sathi{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<style>
+    .weather-card {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .weather-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .forecast-item {
+        min-width: 130px;
+        transition: all 0.3s ease;
+    }
+    
+    .forecast-item:hover {
+        transform: scale(1.05);
+        background-color: #f0fdf4;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .weather-icon {
+        width: 70px;
+        height: 70px;
+        filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.07));
+        transition: transform 0.3s ease;
+    }
+    
+    .weather-icon:hover {
+        transform: scale(1.2) rotate(5deg);
+    }
+    
+    .weather-icon-small {
+        width: 45px;
+        height: 45px;
+        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.07));
+        transition: transform 0.2s ease;
+    }
+    
+    .weather-icon-small:hover {
+        transform: scale(1.15);
+    }
+    
+    .rain-chance {
+        background: linear-gradient(90deg, rgba(59, 130, 246, 0.5) var(--rain-percent), rgba(229, 231, 235, 0.3) var(--rain-percent));
+        transition: all 0.5s ease;
+    }
+    
+    .advice-card {
+        border-left: 4px solid #22c55e;
+        transition: all 0.3s ease;
+    }
+    
+    .advice-card:hover {
+        border-left-width: 8px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .temperature-highlight {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, #e6ffef, #bcffd5);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .section-fade {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    
+    .section-fade.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .weather-tab {
+        cursor: pointer;
+        padding: 0.75rem 1.5rem;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .weather-tab.active {
+        border-bottom-color: #16a34a;
+        color: #16a34a;
+        font-weight: 600;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .location-icon {
+        animation: pulse 2s infinite ease-in-out;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .card-transition {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .stat-card {
+        transition: all 0.3s ease;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Header Section -->
+    <div class="mb-8 text-center">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+            <span class="text-farmer-green-600">Weather</span> Analysis
+        </h1>
+        <p class="text-gray-600 max-w-2xl mx-auto">Get real-time weather insights and agricultural advice tailored for your farm location</p>
+    </div>
+
+    <!-- Current Location Section -->
+    <div class="bg-white p-6 rounded-xl shadow-md mb-6 card-transition">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div class="flex items-center">
+                <i class="fas fa-map-marker-alt text-farmer-green-500 text-xl mr-3 location-icon"></i>
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800" id="locationName">Loading location...</h2>
+                    <p class="text-gray-600 text-sm" id="coordinates">
+                        <span id="latitude">--</span>°, <span id="longitude">--</span>°
+                    </p>
+                </div>
+            </div>
+            <div class="mt-4 md:mt-0">
+                <button id="refreshWeather" class="bg-farmer-green-600 hover:bg-farmer-green-700 text-white px-4 py-2 rounded-md flex items-center text-sm transition-all duration-300">
+                    <i class="fas fa-sync-alt mr-2"></i> Refresh Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="flex flex-col justify-center items-center py-20">
+        <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-farmer-green-700"></div>
+        <p class="mt-4 text-gray-600 text-lg">Loading weather data...</p>
+        <p class="text-sm text-gray-500">Getting the latest forecast for your location</p>
+    </div>
+
+    <!-- Weather Content (hidden until loaded) -->
+    <div id="weatherContent" class="hidden">
+        <!-- Weather Tabs -->
+        <div class="mb-6 flex justify-center">
+            <div class="flex space-x-2 md:space-x-8 border-b border-gray-200 w-full max-w-2xl">
+                <div class="weather-tab active" data-tab="current">Current Weather</div>
+                <div class="weather-tab" data-tab="hourly">Hourly Forecast</div>
+                <div class="weather-tab" data-tab="weekly">Weekly Forecast</div>
+                <div class="weather-tab" data-tab="agriculture">Farm Insights</div>
+            </div>
+        </div>
+        
+        <!-- Current Weather Tab -->
+        <div id="current-tab" class="tab-content active">
+            <!-- Current Weather Card -->
+            <div class="weather-card bg-white shadow-md mb-8 section-fade">
+                <div class="farmer-gradient p-6 text-white">
+                    <div class="flex flex-col md:flex-row justify-between items-center">
+                        <div class="flex items-center mb-6 md:mb-0">
+                            <img id="currentWeatherIcon" src="" alt="Weather" class="weather-icon mr-4">
+                            <div>
+                                <h2 class="temperature-highlight" id="currentTemp">--°C</h2>
+                                <p class="text-lg font-medium" id="currentCondition">--</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-wind text-white mr-3 text-xl"></i>
+                                <div>
+                                    <div class="stat-label">Wind Speed</div>
+                                    <div class="stat-value" id="currentWind">-- km/h</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-tint text-white mr-3 text-xl"></i>
+                                <div>
+                                    <div class="stat-label">Humidity</div>
+                                    <div class="stat-value" id="currentHumidity">--%</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-temperature-high text-white mr-3 text-xl"></i>
+                                <div>
+                                    <div class="stat-label">Feels Like</div>
+                                    <div class="stat-value" id="feelsLike">--°C</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-3 rounded">
+                                <i class="fas fa-cloud-rain text-white mr-3 text-xl"></i>
+                                <div>
+                                    <div class="stat-label">Precipitation</div>
+                                    <div class="stat-value" id="precipitation">-- mm</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-white border-opacity-30">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <span class="text-sm block">Sunrise</span>
+                                <p id="sunrise" class="font-medium text-xl">--:-- AM</p>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-sm block">Sunset</span>
+                                <p id="sunset" class="font-medium text-xl">--:-- PM</p>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-sm block">UV Index</span>
+                                <p id="uvIndex" class="font-medium text-xl">--</p>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-sm block">Pressure</span>
+                                <p id="pressure" class="font-medium text-xl">-- hPa</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Farming Advice Card -->
+            <div class="bg-white p-6 rounded-xl shadow-md mb-8 advice-card section-fade">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-seedling text-farmer-green-500 mr-2"></i> 
+                    Farming Advice for Today
+                </h2>
+                <div id="farmingAdvice" class="text-gray-700">
+                    <!-- Advice will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hourly Forecast Tab -->
+        <div id="hourly-tab" class="tab-content">
+            <!-- Hourly Forecast -->
+            <div class="bg-white p-6 rounded-xl shadow-md mb-8 section-fade">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-clock text-farmer-green-500 mr-2"></i>
+                    24-Hour Forecast
+                </h2>
+                <div class="overflow-x-auto">
+                    <div class="flex space-x-4 py-2" id="hourlyForecast">
+                        <!-- Hourly forecast items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Weekly Forecast Tab -->
+        <div id="weekly-tab" class="tab-content">
+            <!-- 7-Day Forecast -->
+            <div class="bg-white p-6 rounded-xl shadow-md mb-8 section-fade">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-calendar-alt text-farmer-green-500 mr-2"></i>
+                    7-Day Forecast
+                </h2>
+                
+                <!-- Slideshow container -->
+                <div class="relative overflow-hidden">
+                    <!-- Slides container with transition effect -->
+                    <div id="forecastSlideContainer" class="transition-transform duration-500 ease-in-out">
+                        <!-- Slides will be populated by JavaScript -->
+                    </div>
+                    
+                    <!-- Navigation arrows -->
+                    <div class="absolute inset-y-0 left-0 flex items-center">
+                        <button id="prevSlide" class="bg-gray-800 bg-opacity-50 hover:bg-opacity-70 text-white rounded-r-md p-2 transition-all">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </div>
+                    <div class="absolute inset-y-0 right-0 flex items-center">
+                        <button id="nextSlide" class="bg-gray-800 bg-opacity-50 hover:bg-opacity-70 text-white rounded-l-md p-2 transition-all">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Slide indicators -->
+                    <div class="absolute bottom-2 left-0 right-0 flex justify-center space-x-2">
+                        <!-- Indicators will be added by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Slideshow controls -->
+                <div class="flex justify-center mt-4">
+                    <button id="pauseSlideshow" class="bg-farmer-green-600 hover:bg-farmer-green-700 text-white px-4 py-2 rounded-md text-sm transition-all duration-300 flex items-center">
+                        <i class="fas fa-pause mr-2"></i> Pause Slideshow
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Agricultural Metrics Tab -->
+        <div id="agriculture-tab" class="tab-content">
+            <!-- Agricultural Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Soil Moisture & Temperature -->
+                <div class="bg-white p-6 rounded-xl shadow-md section-fade">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-water text-farmer-green-500 mr-2"></i>
+                        Soil Conditions
+                    </h2>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-700 font-medium">Soil Moisture</span>
+                                <span class="text-farmer-green-600 font-semibold" id="soilMoisture">--%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-blue-600 h-3 rounded-full transition-all duration-1000" id="soilMoistureBar" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between mt-1 text-xs text-gray-500">
+                                <span>Too Dry</span>
+                                <span>Optimal</span>
+                                <span>Too Wet</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-700 font-medium">Soil Temperature</span>
+                                <span class="text-farmer-green-600 font-semibold" id="soilTemp">--°C</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-orange-500 h-3 rounded-full transition-all duration-1000" id="soilTempBar" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between mt-1 text-xs text-gray-500">
+                                <span>Cold</span>
+                                <span>Optimal</span>
+                                <span>Hot</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Precipitation Forecast -->
+                <div class="bg-white p-6 rounded-xl shadow-md section-fade">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-cloud-rain text-farmer-green-500 mr-2"></i>
+                        Precipitation Forecast
+                    </h2>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-700 font-medium">Today</span>
+                                <span class="text-farmer-green-600 font-semibold" id="rainToday">-- mm</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="rain-chance transition-all duration-1000 h-3 rounded-full" id="rainTodayBar" style="--rain-percent: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-700 font-medium">Tomorrow</span>
+                                <span class="text-farmer-green-600 font-semibold" id="rainTomorrow">-- mm</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="rain-chance transition-all duration-1000 h-3 rounded-full" id="rainTomorrowBar" style="--rain-percent: 0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-700 font-medium">Next 7 Days</span>
+                                <span class="text-farmer-green-600 font-semibold" id="rainWeek">-- mm</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="rain-chance transition-all duration-1000 h-3 rounded-full" id="rainWeekBar" style="--rain-percent: 0%"></div>
+                            </div>
+                            <div class="flex justify-between mt-1 text-xs text-gray-500">
+                                <span>Dry</span>
+                                <span>Moderate</span>
+                                <span>Heavy</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const weatherContent = document.getElementById('weatherContent');
+        const refreshWeatherBtn = document.getElementById('refreshWeather');
+        
+        // User's coordinates (will be populated from server or browser)
+        let userLatitude = {{latitude|default('null')}};
+        let userLongitude = {{longitude|default('null')}};
+        
+        // Update UI with coordinates
+        const latitudeEl = document.getElementById('latitude');
+        const longitudeEl = document.getElementById('longitude');
+        
+        // Slideshow variables
+        let slideshowInterval;
+        let currentSlide = 0;
+        let totalSlides = 0;
+        let isPaused = false;
+        
+        // Tab switching functionality
+        const tabButtons = document.querySelectorAll('.weather-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+                
+                // Remove active class from all tabs
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                button.classList.add('active');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+                
+                // Add fade-in animation when switching tabs
+                animateSectionFades();
+                
+                // Reset slideshow when switching to weekly tab
+                if(tabName === 'weekly') {
+                    resetSlideshow();
+                } else {
+                    // Pause slideshow when switching away from weekly tab
+                    pauseSlideshow();
+                }
+            });
+        });
+        
+        // Function to animate section fades
+        function animateSectionFades() {
+            const sections = document.querySelectorAll('.section-fade');
+            
+            sections.forEach((section, index) => {
+                setTimeout(() => {
+                    section.classList.add('visible');
+                }, 100 * index); // Stagger the animations
+            });
+        }
+        
+        // Weather data fetching function
+        async function fetchWeatherData() {
+            loadingIndicator.classList.remove('hidden');
+            weatherContent.classList.add('hidden');
+            
+            // Reset any visible sections
+            document.querySelectorAll('.section-fade').forEach(section => {
+                section.classList.remove('visible');
+            });
+            
+            if (!userLatitude || !userLongitude) {
+                // If coordinates aren't available from user profile, try browser geolocation
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            userLatitude = position.coords.latitude;
+                            userLongitude = position.coords.longitude;
+                            latitudeEl.textContent = userLatitude.toFixed(4);
+                            longitudeEl.textContent = userLongitude.toFixed(4);
+                            
+                            // Now fetch weather with detected coordinates
+                            getWeatherData(userLatitude, userLongitude);
+                        },
+                        function(error) {
+                            // Default to a location in India if geolocation fails
+                            console.error("Geolocation error:", error);
+                            userLatitude = 28.6139;  // New Delhi
+                            userLongitude = 77.2090;
+                            latitudeEl.textContent = userLatitude.toFixed(4);
+                            longitudeEl.textContent = userLongitude.toFixed(4);
+                            
+                            getWeatherData(userLatitude, userLongitude);
+                        }
+                    );
+                } else {
+                    // Geolocation not supported, use default
+                    userLatitude = 28.6139;  // New Delhi
+                    userLongitude = 77.2090;
+                    latitudeEl.textContent = userLatitude.toFixed(4);
+                    longitudeEl.textContent = userLongitude.toFixed(4);
+                    
+                    getWeatherData(userLatitude, userLongitude);
+                }
+            } else {
+                // Use coordinates from user profile
+                latitudeEl.textContent = userLatitude.toFixed(4);
+                longitudeEl.textContent = userLongitude.toFixed(4);
+                getWeatherData(userLatitude, userLongitude);
+            }
+        }
+        
+        // Function to get weather data from API
+        async function getWeatherData(lat, lon) {
+            try {
+                // Use fetch with API
+                const response = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
+                
+                if (!response.ok) {
+                    throw new Error('Weather data request failed');
+                }
+                
+                const data = await response.json();
+                
+                // Update weather display
+                updateWeatherDisplay(data);
+                
+                // Hide loading, show content with animation
+                loadingIndicator.classList.add('hidden');
+                weatherContent.classList.remove('hidden');
+                
+                // Animate sections after a short delay
+                setTimeout(animateSectionFades, 100);
+                
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                // Show error message
+                loadingIndicator.innerHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-circle text-red-500 text-4xl mb-4"></i>
+                        <p class="text-lg text-gray-800">Error loading weather data</p>
+                        <p class="text-gray-600 mb-4">${error.message}</p>
+                        <button id="retryButton" class="bg-farmer-green-600 hover:bg-farmer-green-700 text-white px-4 py-2 rounded-md transition-all duration-300">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('retryButton').addEventListener('click', function() {
+                    fetchWeatherData();
+                });
+            }
+        }
+        
+        // Function to update the weather display with data
+        function updateWeatherDisplay(data) {
+            // Update location with animation
+            const locationEl = document.getElementById('locationName');
+            locationEl.innerHTML = `<span class="animate__animated animate__fadeIn">${data.location_name || 'Your Farm Location'}</span>`;
+            
+            // Update current weather with transitions
+            document.getElementById('currentTemp').textContent = `${Math.round(data.current.temperature)}°C`;
+            document.getElementById('currentCondition').textContent = data.current.condition;
+            
+            const weatherIcon = document.getElementById('currentWeatherIcon');
+            weatherIcon.style.opacity = '0';
+            weatherIcon.src = data.current.icon_url;
+            weatherIcon.onload = function() {
+                weatherIcon.style.transition = 'opacity 0.5s ease';
+                weatherIcon.style.opacity = '1';
+            };
+            
+            document.getElementById('currentWind').textContent = `${data.current.wind_speed} km/h`;
+            document.getElementById('currentHumidity').textContent = `${data.current.humidity}%`;
+            document.getElementById('feelsLike').textContent = `${Math.round(data.current.feels_like)}°C`;
+            document.getElementById('precipitation').textContent = `${data.current.precipitation} mm`;
+            document.getElementById('sunrise').textContent = data.current.sunrise;
+            document.getElementById('sunset').textContent = data.current.sunset;
+            document.getElementById('uvIndex').textContent = data.current.uv_index;
+            document.getElementById('pressure').textContent = `${data.current.pressure} hPa`;
+            
+            // Update soil data with animated bars
+            const soilMoisture = data.soil ? data.soil.moisture_percent : 45;
+            document.getElementById('soilMoisture').textContent = `${soilMoisture}%`;
+            
+            // Delay setting the width to allow for the transition animation
+            setTimeout(() => {
+                document.getElementById('soilMoistureBar').style.width = `${soilMoisture}%`;
+            }, 100);
+            
+            const soilTemp = data.soil ? data.soil.temperature : 22;
+            document.getElementById('soilTemp').textContent = `${soilTemp}°C`;
+            const soilTempPercent = Math.min(Math.max((soilTemp / 40) * 100, 10), 100);
+            
+            setTimeout(() => {
+                document.getElementById('soilTempBar').style.width = `${soilTempPercent}%`;
+            }, 150);
+            
+            // Update rain forecasts with animated bars
+            const rainToday = data.precipitation ? data.precipitation.today : 0;
+            document.getElementById('rainToday').textContent = `${rainToday} mm`;
+            const rainTodayPercent = Math.min(rainToday * 5, 100); // 20mm = 100%
+            
+            setTimeout(() => {
+                document.getElementById('rainTodayBar').style.setProperty('--rain-percent', `${rainTodayPercent}%`);
+            }, 200);
+            
+            const rainTomorrow = data.precipitation ? data.precipitation.tomorrow : 0;
+            document.getElementById('rainTomorrow').textContent = `${rainTomorrow} mm`;
+            const rainTomorrowPercent = Math.min(rainTomorrow * 5, 100);
+            
+            setTimeout(() => {
+                document.getElementById('rainTomorrowBar').style.setProperty('--rain-percent', `${rainTomorrowPercent}%`);
+            }, 250);
+            
+            const rainWeek = data.precipitation ? data.precipitation.week : 0;
+            document.getElementById('rainWeek').textContent = `${rainWeek} mm`;
+            const rainWeekPercent = Math.min(rainWeek / 2, 100); // 200mm = 100%
+            
+            setTimeout(() => {
+                document.getElementById('rainWeekBar').style.setProperty('--rain-percent', `${rainWeekPercent}%`);
+            }, 300);
+            
+            // Update farming advice with animated entries
+            const adviceContainer = document.getElementById('farmingAdvice');
+            if (data.farming_advice && data.farming_advice.length > 0) {
+                let adviceHTML = '<ul class="space-y-2">';
+                
+                data.farming_advice.forEach((advice, index) => {
+                    adviceHTML += `
+                        <li class="flex items-start advice-item" style="opacity: 0; transform: translateY(10px); transition: all 0.3s ease; transition-delay: ${index * 150}ms;">
+                            <i class="fas fa-check-circle text-farmer-green-500 mt-1 mr-2"></i>
+                            <span>${advice}</span>
+                        </li>
+                    `;
+                });
+                
+                adviceHTML += '</ul>';
+                adviceContainer.innerHTML = adviceHTML;
+                
+                // Animate advice items
+                setTimeout(() => {
+                    document.querySelectorAll('.advice-item').forEach(item => {
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateY(0)';
+                    });
+                }, 100);
+            } else {
+                // Default advice if none provided
+                adviceContainer.innerHTML = `
+                    <p>Based on today's weather conditions:</p>
+                    <ul class="space-y-2 mt-3">
+                        <li class="flex items-start advice-item" style="opacity: 0; transform: translateY(10px); transition: all 0.3s ease; transition-delay: 0ms;">
+                            <i class="fas fa-check-circle text-farmer-green-500 mt-1 mr-2"></i>
+                            <span>${data.current.temperature > 30 ? 'Consider irrigating your crops in the evening to reduce water loss from evaporation.' : 'Today is good for regular watering of crops.'}</span>
+                        </li>
+                        <li class="flex items-start advice-item" style="opacity: 0; transform: translateY(10px); transition: all 0.3s ease; transition-delay: 150ms;">
+                            <i class="fas fa-check-circle text-farmer-green-500 mt-1 mr-2"></i>
+                            <span>${data.current.wind_speed > 20 ? 'Avoid spraying pesticides due to high wind speeds.' : 'Conditions are suitable for pesticide application if needed.'}</span>
+                        </li>
+                        <li class="flex items-start advice-item" style="opacity: 0; transform: translateY(10px); transition: all 0.3s ease; transition-delay: 300ms;">
+                            <i class="fas fa-check-circle text-farmer-green-500 mt-1 mr-2"></i>
+                            <span>${data.precipitation && data.precipitation.today > 5 ? 'Expected rainfall should be sufficient for crops. Consider delaying irrigation.' : 'Monitor soil moisture and irrigate as needed.'}</span>
+                        </li>
+                    </ul>
+                `;
+                
+                // Animate advice items
+                setTimeout(() => {
+                    document.querySelectorAll('.advice-item').forEach(item => {
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateY(0)';
+                    });
+                }, 100);
+            }
+            
+            // Update hourly forecast with staggered animations
+            const hourlyContainer = document.getElementById('hourlyForecast');
+            hourlyContainer.innerHTML = '';
+            
+            if (data.hourly && data.hourly.length > 0) {
+                data.hourly.forEach((hour, index) => {
+                    const hourDiv = document.createElement('div');
+                    hourDiv.className = 'forecast-item flex flex-col items-center p-3 rounded-lg bg-gray-50';
+                    hourDiv.style.opacity = '0';
+                    hourDiv.style.transform = 'translateY(20px)';
+                    hourDiv.style.transition = 'all 0.5s ease';
+                    hourDiv.style.transitionDelay = `${index * 100}ms`;
+                    
+                    hourDiv.innerHTML = `
+                        <span class="text-gray-500 text-sm">${hour.time}</span>
+                        <img src="${hour.icon_url}" alt="${hour.condition}" class="weather-icon-small my-2">
+                        <span class="font-medium">${Math.round(hour.temperature)}°C</span>
+                        <span class="text-xs text-gray-500">${hour.precipitation}mm</span>
+                    `;
+                    
+                    hourlyContainer.appendChild(hourDiv);
+                    
+                    // Trigger layout calculation before adding the animation class
+                    setTimeout(() => {
+                        hourDiv.style.opacity = '1';
+                        hourDiv.style.transform = 'translateY(0)';
+                    }, 10);
+                });
+            } else {
+                // Default hourly forecast if not provided
+                for (let i = 0; i < 24; i += 3) {
+                    const hour = new Date();
+                    hour.setHours(hour.getHours() + i);
+                    
+                    const hourDiv = document.createElement('div');
+                    hourDiv.className = 'forecast-item flex flex-col items-center p-3 rounded-lg bg-gray-50';
+                    hourDiv.style.opacity = '0';
+                    hourDiv.style.transform = 'translateY(20px)';
+                    hourDiv.style.transition = 'all 0.5s ease';
+                    hourDiv.style.transitionDelay = `${i * 30}ms`;
+                    
+                    hourDiv.innerHTML = `
+                        <span class="text-gray-500 text-sm">${hour.getHours()}:00</span>
+                        <img src="${data.current.icon_url}" alt="Weather" class="weather-icon-small my-2">
+                        <span class="font-medium">${Math.round(data.current.temperature - i * 0.5)}°C</span>
+                        <span class="text-xs text-gray-500">0mm</span>
+                    `;
+                    
+                    hourlyContainer.appendChild(hourDiv);
+                    
+                    // Trigger layout calculation before adding the animation class
+                    setTimeout(() => {
+                        hourDiv.style.opacity = '1';
+                        hourDiv.style.transform = 'translateY(0)';
+                    }, 10);
+                }
+            }
+            
+            // Update weekly forecast slideshow
+            setupWeeklyForecastSlideshow(data);
+        }
+        
+        // Function to setup the weekly forecast slideshow
+        function setupWeeklyForecastSlideshow(data) {
+            const slideContainer = document.getElementById('forecastSlideContainer');
+            const indicatorsContainer = document.querySelector('.absolute.bottom-2');
+            const pauseButton = document.getElementById('pauseSlideshow');
+            
+            // Clear any existing content
+            slideContainer.innerHTML = '';
+            indicatorsContainer.innerHTML = '';
+            
+            // Function to create slide elements
+            function createSlides() {
+                let forecastData = [];
+                
+                // Get forecast data from API response or create fallback data
+                if (data.daily && data.daily.length > 0) {
+                    forecastData = data.daily;
+                } else {
+                    // Default daily forecast if not provided
+                    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    for (let i = 0; i < 7; i++) {
+                        const day = new Date();
+                        day.setDate(day.getDate() + i);
+                        
+                        forecastData.push({
+                            date: `${day.getDate()}/${day.getMonth() + 1}`,
+                            day_of_week: days[day.getDay()],
+                            temp_max: Math.round(data.current.temperature + i),
+                            temp_min: Math.round(data.current.temperature - 5 - i),
+                            precipitation: 0,
+                            condition: data.current.condition,
+                            icon_url: data.current.icon_url,
+                            humidity: data.current.humidity
+                        });
+                    }
+                }
+                
+                // Store total slides count
+                totalSlides = forecastData.length;
+                
+                // Create a flex container for horizontal layout
+                slideContainer.className = 'flex transition-transform duration-500 ease-in-out';
+                
+                // Create slides for each day
+                forecastData.forEach((day, index) => {
+                    const slide = document.createElement('div');
+                    slide.className = 'w-full flex-shrink-0 px-4';
+                    slide.setAttribute('data-slide-index', index);
+                    
+                    // Create content for the slide
+                    slide.innerHTML = `
+                        <div class="bg-white p-6 rounded-xl shadow-sm max-w-md mx-auto">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-xl font-bold">${day.day_of_week}</h3>
+                                <span class="text-sm px-2 py-1 bg-farmer-green-100 text-farmer-green-800 rounded-full">${day.date}</span>
+                            </div>
+                            
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center">
+                                    <img src="${day.icon_url}" alt="${day.condition}" class="weather-icon mr-4">
+                                    <div>
+                                        <p class="text-lg font-medium">${day.condition}</p>
+                                        <p class="text-gray-600">Humidity: ${day.humidity}%</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-2xl font-bold text-farmer-green-600">${Math.round(day.temp_max)}°C</p>
+                                    <p class="text-gray-600">Low: ${Math.round(day.temp_min)}°C</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="text-gray-500 text-sm">Precipitation</p>
+                                    <p class="font-medium">${day.precipitation} mm</p>
+                                </div>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="text-gray-500 text-sm">Wind</p>
+                                    <p class="font-medium">${data.current.wind_speed} km/h</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <p class="text-gray-700">
+                                    <i class="fas fa-info-circle text-farmer-green-500 mr-2"></i>
+                                    ${day.precipitation > 5 
+                                        ? 'Expect rain. Plan indoor farm activities.' 
+                                        : day.temp_max > 30 
+                                            ? 'High temperature. Ensure proper irrigation.' 
+                                            : 'Good conditions for field work.'}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    slideContainer.appendChild(slide);
+                    
+                    // Create indicator dot
+                    const indicator = document.createElement('div');
+                    indicator.className = 'h-2 w-2 rounded-full bg-gray-300 transition-all duration-300';
+                    indicator.setAttribute('data-indicator-index', index);
+                    indicatorsContainer.appendChild(indicator);
+                });
+                
+                // Set the active indicator
+                updateIndicators();
+            }
+            
+            // Create the slides
+            createSlides();
+            
+            // Setup controls
+            const prevButton = document.getElementById('prevSlide');
+            const nextButton = document.getElementById('nextSlide');
+            
+            prevButton.addEventListener('click', () => {
+                goToPrevSlide();
+            });
+            
+            nextButton.addEventListener('click', () => {
+                goToNextSlide();
+            });
+            
+            pauseButton.addEventListener('click', () => {
+                if (isPaused) {
+                    resumeSlideshow();
+                    pauseButton.innerHTML = '<i class="fas fa-pause mr-2"></i> Pause Slideshow';
+                } else {
+                    pauseSlideshow();
+                    pauseButton.innerHTML = '<i class="fas fa-play mr-2"></i> Resume Slideshow';
+                }
+                isPaused = !isPaused;
+            });
+            
+            // Setup slideshow
+            resetSlideshow();
+        }
+        
+        // Function to update slide position
+        function updateSlidePosition() {
+            const container = document.getElementById('forecastSlideContainer');
+            if (container) {
+                container.style.transform = `translateX(-${currentSlide * 100}%)`;
+                updateIndicators();
+            }
+        }
+        
+        // Function to update indicator dots
+        function updateIndicators() {
+            const indicators = document.querySelectorAll('[data-indicator-index]');
+            indicators.forEach((indicator, index) => {
+                if (index === currentSlide) {
+                    indicator.classList.add('bg-farmer-green-500', 'w-4');
+                    indicator.classList.remove('bg-gray-300', 'w-2');
+                } else {
+                    indicator.classList.add('bg-gray-300', 'w-2');
+                    indicator.classList.remove('bg-farmer-green-500', 'w-4');
+                }
+            });
+        }
+        
+        // Function to go to next slide
+        function goToNextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateSlidePosition();
+        }
+        
+        // Function to go to previous slide
+        function goToPrevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateSlidePosition();
+        }
+        
+        // Function to setup automatic slideshow
+        function resetSlideshow() {
+            // Clear any existing interval
+            clearInterval(slideshowInterval);
+            
+            // Reset to first slide
+            currentSlide = 0;
+            updateSlidePosition();
+            
+            // Start automatic slideshow
+            isPaused = false;
+            document.getElementById('pauseSlideshow').innerHTML = '<i class="fas fa-pause mr-2"></i> Pause Slideshow';
+            slideshowInterval = setInterval(goToNextSlide, 5000);
+        }
+        
+        // Function to pause slideshow
+        function pauseSlideshow() {
+            clearInterval(slideshowInterval);
+        }
+        
+        // Function to resume slideshow
+        function resumeSlideshow() {
+            slideshowInterval = setInterval(goToNextSlide, 3000);
+        }
+        
+        // Initial fetch
+        fetchWeatherData();
+        
+        // Refresh button event listener
+        refreshWeatherBtn.addEventListener('click', fetchWeatherData);
+    });
+</script>
+{% endblock %} 

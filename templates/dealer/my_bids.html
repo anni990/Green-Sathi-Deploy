@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block title %}My Bids - Green Sathi{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold text-gray-800">My Bids</h1>
+        <p class="text-gray-600 mt-2">Track your bidding history and status</p>
+    </div>
+
+    <div class="mb-6 flex justify-between items-center">
+        <div class="flex space-x-4">
+            <button onclick="filterBids('all')"
+                class="px-4 py-2 rounded-md text-sm font-medium text-white bg-farmer-green-600 hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                All Bids
+            </button>
+            <button onclick="filterBids('pending')"
+                class="px-4 py-2 rounded-md text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                Pending
+            </button>
+            <button onclick="filterBids('accepted')"
+                class="px-4 py-2 rounded-md text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                Won
+            </button>
+            <button onclick="filterBids('rejected')"
+                class="px-4 py-2 rounded-md text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                Rejected
+            </button>
+        </div>
+
+        <a href="{{ url_for('available_crops') }}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-farmer-green-600 hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+            <i class="fa-solid fa-plus mr-2"></i>
+            Browse Crops
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Crop Details
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Your Bid
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Current Highest
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Date
+                        </th>
+                        <th scope="col"
+                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for bid, highest_bid, total_bids in bids %}
+                    <tr class="bid-row" data-status="{{ bid.status }}">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                {% if bid.crop.image_path %}
+                                <img class="h-10 w-10 rounded-full object-cover"
+                                    src="{{ url_for('static', filename=bid.crop.image_path) }}"
+                                    alt="{{ bid.crop.commodity.name }}">
+                                {% else %}
+                                <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <i class="fa-solid fa-seedling text-gray-400"></i>
+                                </div>
+                                {% endif %}
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ bid.crop.commodity.name }}
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        {{ bid.crop.quantity }} {{ bid.crop.unit }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">₹{{ bid.bid_amount }}</div>
+                            <div class="text-sm text-gray-500">Base: ₹{{ bid.crop.base_price }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">₹{{ highest_bid }}</div>
+                            <div class="text-sm text-gray-500">{{ total_bids }} bids</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full 
+                                {% if bid.status == 'pending' %}
+                                    bg-blue-100 text-blue-800
+                                {% elif bid.status == 'accepted' %}
+                                    bg-green-100 text-green-800
+                                {% elif bid.status == 'rejected' %}
+                                    bg-red-100 text-red-800
+                                {% else %}
+                                    bg-gray-100 text-gray-800
+                                {% endif %}">
+                                {{ bid.status|title }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ bid.created_at.strftime('%d %b %Y') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            {% if bid.status == 'active' %}
+                            <button onclick="updateBid({{ bid.id }})"
+                                class="text-farmer-green-600 hover:text-farmer-green-900">
+                                Update Bid
+                            </button>
+                            {% endif %}
+
+                            {% if bid.status == 'accepted' %}
+                            <button onclick="showAvailPopup()"
+                                class="text-white bg-farmer-yellow-600 hover:bg-farmer-yellow-700 px-3 py-1 rounded-md">
+                                Avail
+                            </button>
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <i class="fa-solid fa-gavel text-gray-400 text-5xl mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No bids yet</h3>
+                            <p class="text-gray-500 mb-6">Start bidding on available crops</p>
+                            <a href="{{ url_for('available_crops') }}"
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-farmer-green-600 hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                                <i class="fa-solid fa-plus mr-2"></i>
+                                Browse Crops
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <!-- Avail Confirmation Popup -->
+                <div id="avail-popup"
+                    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+                    <div class="bg-white p-6 rounded-lg shadow-lg text-center relative w-80">
+                        <!-- Confetti container -->
+                        <div id="confetti-container" class="absolute inset-0 pointer-events-none z-0"></div>
+
+                        <h2 class="text-lg font-semibold text-green-600 mb-4">🎉 Our team will connect you soon!</h2>
+                        <button onclick="closeAvailPopup()"
+                            class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                            Close
+                        </button>
+                    </div>
+                </div>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Update Bid Modal -->
+<div id="updateBidModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-md w-full">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-gray-900">Update Your Bid</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-500">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="updateBidForm" onsubmit="submitUpdateBid(event)" class="px-6 py-4">
+                <input type="hidden" id="bidId" name="bid_id">
+
+                <div class="mb-4">
+                    <label for="updateBidAmount" class="block text-sm font-medium text-gray-700 mb-1">New Bid Amount
+                        (₹)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-indian-rupee-sign text-gray-400"></i>
+                        </div>
+                        <input type="number" step="0.01" id="updateBidAmount" name="bid_amount" required
+                            class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10"
+                            placeholder="Enter your new bid amount">
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500">Must be higher than the current highest bid</p>
+                </div>
+
+                <div class="mt-6">
+                    <button type="submit"
+                        class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-farmer-green-600 hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                        <i class="fa-solid fa-gavel mr-2"></i>
+                        Update Bid
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+<script>
+    function filterBids(status) {
+        const rows = document.querySelectorAll('.bid-row');
+        rows.forEach(row => {
+            if (status === 'all' || row.dataset.status === status) {
+                row.style.display = 'table-row';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update active button
+        document.querySelectorAll('.mb-6 button').forEach(btn => {
+            if (btn.textContent.toLowerCase().includes(status)) {
+                btn.classList.remove('text-gray-700', 'bg-white', 'border-gray-300');
+                btn.classList.add('text-white', 'bg-farmer-green-600');
+            } else {
+                btn.classList.remove('text-white', 'bg-farmer-green-600');
+                btn.classList.add('text-gray-700', 'bg-white', 'border-gray-300');
+            }
+        });
+    }
+
+    function updateBid(bidId) {
+        document.getElementById('bidId').value = bidId;
+        document.getElementById('updateBidModal').classList.remove('hidden');
+
+        // Fetch current bid details
+        fetch(`/api/bids/${bidId}`)
+            .then(response => response.json())
+            .then(data => {
+                const minBid = data.crop.highest_bid || data.crop.base_price;
+                document.getElementById('updateBidAmount').min = minBid + 1;
+                document.getElementById('updateBidAmount').placeholder = `Minimum bid: ₹${minBid + 1}`;
+                document.getElementById('updateBidAmount').value = data.bid_amount;
+            })
+            .catch(error => {
+                console.error('Error fetching bid details:', error);
+            });
+    }
+
+    function closeModal() {
+        document.getElementById('updateBidModal').classList.add('hidden');
+        document.getElementById('updateBidForm').reset();
+    }
+
+    function submitUpdateBid(event) {
+        event.preventDefault();
+
+        const bidId = document.getElementById('bidId').value;
+        const bidAmount = document.getElementById('updateBidAmount').value;
+
+        fetch(`/api/bids/${bidId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                bid_amount: parseFloat(bidAmount)
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeModal();
+                    window.location.reload();
+                } else {
+                    alert('Error updating bid: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating bid:', error);
+                alert('Error updating bid. Please try again.');
+            });
+    }
+    function showAvailPopup() {
+        document.getElementById('avail-popup').classList.remove('hidden');
+        launchConfetti();
+    }
+
+    function closeAvailPopup() {
+        document.getElementById('avail-popup').classList.add('hidden');
+    }
+
+    function launchConfetti() {
+        const duration = 2000;
+        const animationEnd = Date.now() + duration;
+        const defaults = {
+            startVelocity: 30,
+            spread: 360,
+            ticks: 60,
+            zIndex: 2000
+        };
+
+        const interval = setInterval(() => {
+            const timeLeft = animationEnd - Date.now();
+            if (timeLeft <= 0) return clearInterval(interval);
+
+            confetti(Object.assign({}, defaults, {
+                particleCount: 40,
+                origin: {
+                    x: Math.random(),
+                    y: Math.random() - 0.2
+                }
+            }));
+        }, 200);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,950 @@
+{
+    "Garlic": {
+      "Diseases": {
+        "Purple Blotch": {
+          "Pathogen": "Alternaria porri",
+          "Symptoms": "Oval purple spots with yellow halo on leaves",
+          "Spray": "Mancozeb 2g/L + Carbendazim 1g/L every 10-15 days"
+        },
+        "Stemphylium Blight": {
+          "Symptoms": "Small yellow spots turning black",
+          "Spray": "Azoxystrobin 1ml/L"
+        },
+        "White Rot": {
+          "Pathogen": "Sclerotium cepivorum",
+          "Symptoms": "White fungal growth at bulb base",
+          "Soil Treatment": "Carbendazim 5g/kg seeds + Crop rotation (4 years)"
+        }
+      },
+      "Insect Pests": {
+        "Thrips": {
+          "Damage": "Silvery streaks on leaves",
+          "Spray": "Fipronil 1ml/L OR Imidacloprid 0.5ml/L"
+        },
+        "Onion Maggot": {
+          "Damage": "Maggots tunnel into bulbs",
+          "Treatment": "Chlorpyriphos 2ml/L soil drenching"
+        }
+      },
+      "Nutrient Deficiencies": {
+        "Nitrogen": {
+          "Symptom": "Yellow tips",
+          "Treatment": "Apply Urea (1kg/100L water)"
+        },
+        "Sulfur": {
+          "Symptom": "Thin, weak leaves",
+          "Treatment": "Gypsum 50kg/acre"
+        }
+      },
+      "Critical Timings": {
+        "Pre-planting": "Hot water treatment (50°C for 30 mins) for seed cloves",
+        "30 DAP": "First fungicide spray",
+        "Bulb Formation": "Increase potassium (MOP 1% foliar spray)"
+      }
+    },
+  
+    "Potato": {
+      "Diseases": {
+        "Late Blight": {
+          "Pathogen": "Phytophthora infestans",
+          "Symptoms": "Water-soaked lesions → black rot",
+          "Emergency Spray": "Metalaxyl-M 4% + Mancozeb 64% WP (2.5g/L)"
+        },
+        "Early Blight": {
+          "Pathogen": "Alternaria solani",
+          "Symptoms": "Target-pattern spots",
+          "Spray": "Chlorothalonil 2g/L"
+        },
+        "Black Scurf": {
+          "Pathogen": "Rhizoctonia solani",
+          "Symptoms": "Black crust on tubers",
+          "Seed Treatment": "Biological control with Trichoderma 5g/kg seed"
+        }
+      },
+      "Insect Pests": {
+        "Potato Tuber Moth": {
+          "Damage": "Tunnels in tubers",
+          "Control": "Phorate 10G 8kg/acre at planting"
+        },
+        "Colorado Beetle": {
+          "Damage": "Complete defoliation",
+          "Spray": "Emamectin Benzoate 0.5g/L"
+        }
+      },
+      "Physiological Disorders": {
+        "Hollow Heart": "Irregular watering → Maintain consistent moisture",
+        "Greening": "Sun exposure → Earthing up properly"
+      },
+      "Special Tips": {
+        "Pre-Storage": "Dip tubers in Boric Acid 3% solution for longer shelf life",
+        "Critical Spray": "Bordeaux mixture 1% at 45 DAP"
+      }
+    },
+  
+    "Maize": {
+      "Diseases": {
+        "Turcicum Leaf Blight": {
+          "Symptoms": "Long cigar-shaped lesions",
+          "Spray": "Tebuconazole 1ml/L"
+        },
+        "Post-Flowering Stalk Rot": {
+          "Symptoms": "Lodging + pink pith",
+          "Management": "Avoid waterlogging + Balanced NPK"
+        }
+      },
+      "Insect Pests": {
+        "Stem Borer": {
+          "Damage": "Dead hearts",
+          "Spray": "Cartap Hydrochloride 1g/L at 15 & 30 DAS"
+        },
+        "Fall Armyworm": {
+          "Damage": "Nuksani keet",
+          "Emergency Control": "Spinetoram 0.5ml/L + Sand in funnel"
+        }
+      },
+      "Micronutrient Needs": {
+        "Zinc": {
+          "Deficiency": "White bands on leaves",
+          "Solution": "ZnSO4 0.5% foliar spray"
+        },
+        "Boron": {
+          "Deficiency": "Poor cob filling",
+          "Solution": "Borax 2kg/acre soil application"
+        }
+      },
+      "Hybrid-Specific": {
+        "BT Maize": "Requires refuge crop (20% non-BT maize)"
+      }
+    },
+  
+    "Groundnut": {
+      "Diseases": {
+        "Tikka Disease": {
+          "Pathogen": "Cercospora spp.",
+          "Symptoms": "Circular spots with yellow halo",
+          "Spray": "Hexaconazole 1ml/L + Wettable Sulfur 3g/L"
+        },
+        "Collar Rot": {
+          "Pathogen": "Aspergillus niger",
+          "Symptoms": "Sudden seedling death",
+          "Seed Treatment": "Carbendazim 2g/kg seed"
+        }
+      },
+      "Insect Pests": {
+        "Leaf Miner": {
+          "Damage": "Serpentine tunnels",
+          "Spray": "Abamectin 0.5ml/L"
+        },
+        "Termites": {
+          "Control": "Chlorpyriphos 5L/acre via irrigation"
+        }
+      },
+      "Critical Practices": {
+        "Calcium Need": "Gypsum 200kg/acre at pegging stage",
+        "Harvest Timing": "80% pods mature (avoid over-maturity)"
+      }
+    },
+  
+    "Carrot": {
+      "Diseases": {
+        "Alternaria Blight": {
+          "Symptoms": "Black lesions on leaves",
+          "Spray": "Copper Oxychloride 3g/L"
+        },
+        "Sclerotinia Rot": {
+          "Type": "Storage Disease",
+          "Prevention": "Avoid wet harvest + Cold storage at 0°C"
+        }
+      },
+      "Insect Pests": {
+        "Carrot Rust Fly": {
+          "Damage": "Rusty root tunnels",
+          "Control": "Neem Cake 100kg/acre + Cypermethrin 1ml/L"
+        }
+      },
+      "Quality Factors": {
+        "Forking": "Caused by heavy soils → Use raised beds",
+        "Bitterness": "Due to water stress → Regular irrigation"
+      }
+    },
+  
+    "Soybean": {
+      "Diseases": {
+        "Yellow Mosaic Virus": {
+          "Symptoms": "Yellow patches (Whitefly transmitted)",
+          "Control": "Imidacloprid 0.5ml/L for vectors + Resistant varieties"
+        },
+        "Rhizoctonia Root Rot": {
+          "Symptoms": "Reddish-brown stem lesions",
+          "Treatment": "Seed treatment with Thiram 3g/kg"
+        }
+      },
+      "Insect Pests": {
+        "Girdle Beetle": {
+          "Damage": "Stem girdling",
+          "Spray": "Quinalphos 2ml/L at flowering"
+        },
+        "Helicoverpa Pod Borer": {
+          "Emergency": "Spinosad 0.5ml/L at pod formation"
+        }
+      },
+      "N-Fixation Boosters": {
+        "Bradyrhizobium": "Inoculate seeds with 200g/10kg seed",
+        "Molybdenum": "Sodium Molybdate 1kg/acre soil application"
+      }
+    },
+  
+    "Pro Farmer Tips": {
+      "Weather-Based Spraying": "Fungicides before rains, Insecticides after rains",
+      "Adjuvant Use": "Add Teepol/sticker (0.5ml/L) for better adhesion",
+      "Resistance Prevention": "Rotate FRAC groups (e.g., Don’t use triazoles consecutively)"
+    },
+    "Aonla": {
+        "Diseases": {
+        "Anthracnose": {
+            "Symptoms": "Sunken black spots on fruits, leaf fall",
+            "Pro Tip": "Spray before monsoon starts",
+            "Chemical Control": "Hexaconazole 5% SC (2 ml/L) + Mancozeb 75% WP (3 g/L)",
+            "Biological": "Trichoderma harzianum soil application (50 g/tree)"
+        },
+        "Rust": {
+            "Symptoms": "Orange-yellow pustules underside leaves",
+            "Treatment": "Propiconazole 25% EC (1 ml/L) every 15 days"
+        }
+        },
+        "Insect Pests": {
+        "Fruit Borer": {
+            "Damage": "Holes in fruits with frass",
+            "Best Control": "Emamectin benzoate 5% SG (0.5 g/L) at fruit set"
+        },
+        "Leaf Gall Aphid": {
+            "Unique Solution": "Dimethoate 30% EC (2 ml/L) + sticker (1 ml/L)"
+        }
+        },
+        "Special Practices": {
+        "Post-Harvest Dip": "Bavistin 0.1% solution for longer shelf life",
+        "Yield Booster": "2% DAP foliar spray at flowering"
+        }
+    },
+    "Turmeric": {
+        "Diseases": {
+        "Rhizome Rot": {
+            "Symptoms": "Soft, foul-smelling rhizomes",
+            "Pro Farmer Secret": "Pre-planting dip: Carbendazim 50% WP (2 g/L) + Pseudomonas fluorescens (10 g/L)",
+            "Drainage": "Must add 2 kg sand per pit"
+        },
+        "Leaf Blotch": {
+            "Symptoms": "Oval brown spots with yellow halo",
+            "New Generation Fungicide": "Tebuconazole + Trifloxystrobin 75% WG (0.5 g/L)"
+        }
+        },
+        "Insect Pests": {
+        "Shoot Borer": {
+            "Best Knockdown": "Fipronil 0.3% GR (10 kg/acre) soil application",
+            "Organic Alternative": "Neem cake 250 kg/acre"
+        },
+        "Thrips": {
+            "Hidden Damage": "Silvery streaks on leaves",
+            "Chemicals": "Acetamiprid 20% SP (0.2 g/L) with wetting agent"
+        }
+        },
+        "Post-Harvest": {
+        "Boiling Time": "Exactly 45 minutes for best color",
+        "Storage Treatment": "Boric acid powder dusting @ 2%"
+        }
+    },
+    "Moong": {
+        "Diseases": {
+        "Yellow Mosaic Virus": {
+            "Emergency Control": "Imidacloprid 17.8% SL (0.5 ml/L) for whitefly vector",
+            "Resistant Varieties": "ML 2056, PDM 54"
+        },
+        "Cercospora Leaf Spot": {
+            "Cost-Effective Control": "Chlorothalonil 75% WP (2 g/L)"
+        }
+        },
+        "Insect Pests": {
+        "Pod Borer": {
+            "Critical Spray Window": "At pod formation stage",
+            "Latest Insecticide": "Spinetoram 11.7% SC (0.3 ml/L)"
+        },
+        "Whitefly": {
+            "Sticky Trap": "12 yellow traps/acre",
+            "Chemical": "Thiamethoxam 25% WG (0.2 g/L)"
+        }
+        },
+        "Pro Tips": {
+        "Sowing Time": "15 June-15 July for maximum yield",
+        "Seed Treatment": "Carbendazim 2g + Thiram 2g/kg seed"
+        }
+    },
+    "Guar": {
+        "Diseases": {
+        "Bacterial Blight": {
+            "Symptoms": "Water-soaked angular spots",
+            "Copper Combo": "Copper oxychloride 50% WP (3 g/L) + Streptocycline (5 g/100 L)"
+        },
+        "Powdery Mildew": {
+            "Best Fungicide": "Sulfur 80% WG (3 g/L) + wetting agent"
+        }
+        },
+        "Insect Pests": {
+        "Jassids": {
+            "Hot Weather Alert": "More active at >35°C",
+            "Control": "Acetamiprid 20% SP (0.3 g/L)"
+        },
+        "Pod Sucking Bugs": {
+            "Damage": "Shriveled pods",
+            "Spray": "Profenophos 50% EC (2 ml/L)"
+        }
+        },
+        "Special Practices": {
+        "Gum Content Booster": "0.5% Boron spray at flowering"
+        }
+    },
+    "Mustard": {
+        "Diseases": {
+        "White Rust": {
+            "Hidden Danger": "Systemic infection",
+            "Powerful Combo": "Metalaxyl 8% + Mancozeb 64% WP (2.5 g/L)"
+        },
+        "Alternaria Blight": {
+            "New Solution": "Azoxystrobin 23% SC (1 ml/L)"
+        }
+        },
+        "Insect Pests": {
+        "Aphid": {
+            "Peak Time": "February first week",
+            "Guaranteed Control": "Thiamethoxam 25% WG (0.4 g/L)"
+        },
+        "Sawfly": {
+            "Organic Trick": "NSKE 5% spray at seedling stage"
+        }
+        },
+        "Yield Secrets": {
+        "Critical Spray": "Boron 0.2% at flowering prevents flower drop",
+        "Harvest Timing": "75% pods turn yellow"
+        }
+    },
+    "Sem": {
+        "Diseases": {
+        "Root Knot Nematode": {
+            "Soil Treatment": "Carbofuran 3% CG (10 kg/acre)",
+            "Resistant Varieties": "Pusa Komal"
+        },
+        "Rust": {
+            "Symptoms": "Reddish-brown pustules",
+            "Fungicide": "Tebuconazole 25% EC (1 ml/L)"
+        }
+        },
+        "Insect Pests": {
+        "Pod Fly": {
+            "Invisible Damage": "Eggs inside pods",
+            "Best Insecticide": "Cypermethrin 25% EC (1 ml/L)"
+        },
+        "Leaf Miner": {
+            "Window Spray": "Abamectin 1.9% EC (0.5 ml/L) at first sign"
+        }
+        },
+        "Pro Advice": {
+        "Intercropping": "With pearl millet reduces pest incidence",
+        "Seed Storage": "Mix with Neem oil treated sand"
+        }
+    },
+    "Agri-Input Dealer's Special Recommendations": {
+        "Adjuvants": "Always add Sticker (0.5 ml/L) for better retention",
+        "Tank Mix Order": "WDG → SC → EC → WP → Surfactants",
+        "Resistance Management": "Rotate Group 3 & 11 fungicides; Alternate Neonicotinoids & Spinosyns for insects"
+    },
+    "Elephant Yam": {
+        "Diseases": {
+        "Leaf Blight": {
+            "Symptoms": "Large irregular brown patches with yellow halo",
+            "Pro Treatment": "Mancozeb 75% WP (3g/L) + Carbendazim 1g/L (Alternate weekly)",
+            "Secret Tip": "Add 1% urea to spray for dual benefit"
+        },
+        "Corm Rot": {
+            "Symptoms": "Soft rotting with foul smell during storage",
+            "Preventive Measures": {
+            "Pre-planting Dip": "Bordeaux mixture 1% for 30 minutes",
+            "Storage Treatment": "Bavistin 0.1% dusting"
+            }
+        }
+        },
+        "Insect Pests": {
+        "Yam Beetle": {
+            "Damage": "Irregular holes in leaves",
+            "Best Control": "Fipronil 0.3% G (8kg/acre) soil application"
+        },
+        "Mealybugs": {
+            "Ant Solution": "Apply Chlorpyriphos 20% EC (2ml/L) at stem base"
+        }
+        },
+        "Special Practices": {
+        "Propagation": "Top portion of corm gives highest yield",
+        "Yield Booster": "Potassium sulfate 1% spray at tuber formation"
+        }
+    },
+    "Cucumber": {
+        "Diseases": {
+        "Downy Mildew": {
+            "Symptoms": "Angular yellow spots on upper surface",
+            "Pro Farmer's Choice": "Metalaxyl 8% + Mancozeb 64% WP (2.5g/L)",
+            "New Tech": "Amisulbrom 20% SC (0.5ml/L)"
+        },
+        "Powdery Mildew": {
+            "Best Organic Control": "Wettable sulfur 3g/L + sticker"
+        }
+        },
+        "Insect Pests": {
+        "Fruit Fly": {
+            "Bait Technology": "Malathion 50% EC (2ml) + Jaggery (10g)/L as trap",
+            "Best Spray": "Spinosad 45% SC (0.3ml/L) at flowering"
+        },
+        "Red Pumpkin Beetle": {
+            "Seedling Protection": "Carbaryl 50% WP (3g/L) as first spray"
+        }
+        },
+        "Hybrid-Specific Tips": {
+        "Protected Cultivation": "Use Trichoderma viride in cocopeat",
+        "Harvest Timing": "Morning hours for better crispness"
+        }
+    },
+    "Kundru": {
+        "Diseases": {
+        "Fruit Rot": {
+            "Symptoms": "Water-soaked lesions turning black",
+            "Effective Combo": "Copper oxychloride 3g + Streptocycline 1g/10L"
+        },
+        "Leaf Spot": {
+            "New Generation Fungicide": "Azoxystrobin 23% SC (1ml/L)"
+        }
+        },
+        "Insect Pests": {
+        "Epilachna Beetle": {
+            "Damage": "Skeletonized leaves",
+            "Best Knockdown": "Lambda-cyhalothrin 5% EC (1ml/L)"
+        },
+        "Whitefly": {
+            "Sticky Trick": "Yellow traps smeared with Castor oil"
+        }
+        },
+        "Commercial Secrets": {
+        "Training System": "Bower increases yield by 40%",
+        "PGR Use": "NAA 40ppm enhances female flowers"
+        }
+    },
+    "Bottle Gourd": {
+        "Diseases": {
+        "Mosaic Virus": {
+            "Complete Management": "Imidacloprid 0.5ml/L for vector control, Milk 10% spray to inhibit virus spread"
+        },
+        "Damping Off": {
+            "Pro Solution": "Metalaxyl 2g + Trichoderma 5g/kg seed"
+        }
+        },
+        "Insect Pests": {
+        "Fruit Fly": {
+            "Innovative Trap": "Plastic bottles with Cue lure + Malathion",
+            "Best Spray": "Deltamethrin 2.8% EC (1ml/L)"
+        },
+        "Leaf Miner": {
+            "Hidden Damage": "Serpentine mines",
+            "Control": "Abamectin 1.8% EC (0.5ml/L)"
+        }
+        },
+        "Quality Tips": {
+        "Straight Fruit Growth": "Hang small weights to developing fruits",
+        "Post-Harvest": "Wax coating extends shelf life"
+        }
+    },
+    "Green Gram": {
+        "Diseases": {
+        "Cercospora Leaf Spot": {
+            "Cost-Effective": "Chlorothalonil 75% WP (2g/L)"
+        },
+        "Dry Root Rot": {
+            "Seed Treatment": "Carbendazim 2g + Thiram 2g/kg seed"
+        }
+        },
+        "Insect Pests": {
+        "Pod Borer": {
+            "Critical Window": "Spray at 50% flowering",
+            "Latest Insecticide": "Emamectin benzoate 5% SG (0.4g/L)"
+        },
+        "Whitefly": {
+            "Resistance Management": "Alternate Acetamiprid & Thiamethoxam"
+        }
+        },
+        "Scientific Farming": {
+        "Inoculation": "Rhizobium culture increases yield by 20%",
+        "Intercropping": "With Pearl millet reduces pest incidence"
+        }
+    },
+    "Brinjal": {
+        "Deadly Diseases": {
+        "Fruit & Shoot Borer (FSB)": {
+            "Symptoms": "Holes in fruits with frass, wilted shoots",
+            "Nuclear Solution": "Emamectin benzoate 5% SG (0.4g/L) + Neem oil (5ml/L)",
+            "Pro Tip": "Spray at 4 PM when larvae are active"
+        },
+        "Bacterial Wilt": {
+            "Emergency Control": "Drench with Streptocycline (5g) + Copper oxychloride (3g)/10L",
+            "Grafting": "Use resistant rootstock (Solanum torvum)"
+        }
+        },
+        "Pest Warfare": {
+        "Whitefly": {
+            "Silverleaf Threat": "Vector of leaf curl virus",
+            "Best Combo": "Thiamethoxam 25% WG (0.3g/L) + Sticker"
+        },
+        "Lacewing Bug": {
+            "Unique Damage": "Yellow stippling on leaves",
+            "New Insecticide": "Flonicamid 50% WG (0.2g/L)"
+        }
+        },
+        "Hybrid-Specific Tips": {
+        "Long Fruit Varieties": "Need Calcium nitrate (1%) spray to prevent blossom end rot",
+        "Protected Cultivation": "Use UV-stabilized nets against thrips"
+        }
+    },
+    "Sugarcane": {
+        "Yield-Killer Diseases": {
+        "Red Rot": {
+            "Diagnosis": "Reddish internal discoloration with alcohol smell",
+            "Complete Protection": {
+            "Setts treatment": "Carbendazim 50% WP (2g/L) for 10 minutes",
+            "Resistant Varieties": "Co 0238, Co 98014"
+            }
+        },
+        "Smut": {
+            "Identification": "Black whip-like structures",
+            "Eradication": "Propiconazole 25% EC (1ml/L) at 60 DAP"
+        }
+        },
+        "Insect Armageddon": {
+        "Early Shoot Borer": {
+            "Symptom": "Dead Heart symptom",
+            "Soil Application": "Fipronil 0.3% GR (12kg/acre) at planting"
+        },
+        "Pyrilla": {
+            "Effect": "Honeydew causing sooty mold",
+            "Best Knockdown": "Imidacloprid 17.8% SL (0.5ml/L)"
+        }
+        },
+        "Factory-Level Tips": {
+        "Ratoon Management": "2% urea spray on stubble after harvest",
+        "Sugar Booster": "Potassium humate (2ml/L) at grand growth stage"
+        }
+    },
+    "Cabbage": {
+        "Disease Demolition": {
+        "Black Rot": {
+            "Symptom": "V-shaped lesions from leaf margins",
+            "Chemical Warfare": "Kasugamycin 3% SL (2g/L) + Copper hydroxide 77% WP (3g/L)"
+        },
+        "Club Root": {
+            "Symptom": "Swollen malformed roots",
+            "Soil Treatment": "Lime (2t/acre) + Bavistin drench (1g/L)"
+        }
+        },
+        "Pest Annihilation": {
+        "Diamondback Moth": {
+            "Symptom": "Window-paned leaves",
+            "Resistance-Breaker": "Chlorantraniliprole 18.5% SC (0.3ml/L)"
+        },
+        "Cabbage Looper": {
+            "Biological Control": "NSKE 5% + Teepol (0.5ml/L)"
+        }
+        },
+        "Market Secrets": {
+        "Head Firming": "Boron 0.2% spray at head formation",
+        "Post-Harvest": "Calcium chloride dip for longer shelf life"
+        }
+    },
+    "Castor": {
+        "Disease Threats": {
+        "Seedling Blight": {
+            "Symptom": "Damping off in rainy season",
+            "Seed Treatment": "Thiram 3g + Carbendazim 1g/kg seed"
+        },
+        "Alternaria Blight": {
+            "Symptom": "Target-like spots on leaves",
+            "Fungicide Choice": "Azoxystrobin 23% SC (1ml/L)"
+        }
+        },
+        "Insect Invasion": {
+        "Semilooper": {
+            "Damage": "Skeletonized leaves",
+            "Best Control": "Quinalphos 25% EC (2ml/L) at evening"
+        },
+        "Capsule Borer": {
+            "Trap Cropping": "Plant sunflower as border crop"
+        }
+        },
+        "Industrial Tips": {
+        "Oil Content Boost": "Sulfur 0.5% spray at flowering",
+        "Harvest Trick": "Collect capsules in 3-4 pickings"
+        }
+    },
+    "Mango": {
+        "Orchard Diseases": {
+        "Anthracnose": {
+            "Symptom": "Black sunken spots on fruits",
+            "Pro Program": {
+            "Pre-bloom": "Copper hydroxide 77% WP (3g/L)",
+            "Post-fruit set": "Hexaconazole 5% EC (2ml/L)"
+            }
+        },
+        "Powdery Mildew": {
+            "Best Organic": "Wettable sulfur 3g/L at 10-day intervals"
+        }
+        },
+        "Insect Onslaught": {
+        "Mango Hopper": {
+            "Effect": "Sooty mold from honeydew",
+            "Dormant Spray": "Monocrotophos 36% SL (2ml/10L)"
+        },
+        "Fruit Fly": {
+            "Bait Technology": "Malathion 50% EC (2ml) + Molasses (10g)/L traps"
+        }
+        },
+        "Export-Quality Tricks": {
+        "Hot Water Treatment": "48°C for 60 minutes against fruit fly",
+        "Precision Farming": "Paclobutrazol soil application for off-year flowering"
+        }
+    },
+    "Kinnow": {
+        "Citrus Plagues": {
+        "Citrus Canker": {
+            "Symptom": "Raised corky lesions",
+            "Copper Therapy": "Copper hydroxide 77% WP (3g/L) every 21 days"
+        },
+        "Greening Disease": {
+            "Symptom": "Lopsided fruits with bitter taste",
+            "Psyllid Control": "Imidacloprid 17.8% SL (0.5ml/L)"
+        }
+        },
+        "Pest Solutions": {
+        "Leaf Miner": {
+            "Symptom": "Serpentine mines on new leaves",
+            "Best Spray": "Abamectin 1.8% EC (0.5ml/L)"
+        },
+        "Fruit Sucking Moth": {
+            "Timing": "Night Spray",
+            "Spray": "Deltamethrin 2.8% EC (1ml/L) at dusk"
+        }
+        },
+        "Juice Factory Standards": {
+        "TSS Booster": "Potassium nitrate 1% spray at fruit development",
+        "Degreening": "Ethylene gas treatment for uniform color"
+        }
+    },
+    "Guava": {
+        "Deadly Diseases & Solutions": {
+        "Wilt (Fusarium oxysporum)": {
+            "Symptoms": "Sudden wilting, vascular browning",
+            "Nuclear Solution": {
+            "Soil drench": "Carbendazim 2g + Trichoderma 10g/L water (per tree)",
+            "Grafting Trick": "Use Psidium molle rootstock"
+            }
+        },
+        "Anthracnose": {
+            "Fruit Symptoms": "Sunken black spots with pink spore masses",
+            "Pro Spray Schedule": {
+            "Pre-flowering": "Copper oxychloride 0.3%",
+            "Fruit development": "Hexaconazole 0.1% (2ml/L)"
+            }
+        }
+        },
+        "Insect Armageddon": {
+        "Fruit Fly": {
+            "Bait Technology": "Methyl eugenol traps (10/acre) + Malathion 50EC (1ml/trap)",
+            "Best Spray": "Spinosad 45SC (0.3ml/L) at fruit set"
+        },
+        "Mealybug": {
+            "Sticky Situation": "Sooty mold on honeydew",
+            "Breakthrough Insecticide": "Flonicamid 50WG (0.3g/L)"
+        }
+        },
+        "Commercial-Grade Tips": {
+        "Yield Booster": "2% SOP spray during fruit development",
+        "Post-Harvest": "Hot water dip (48°C for 20 mins) + Wax coating"
+        }
+    },
+    "S.CANE (SUGARCANE)": {
+        "Factory-Level Disease Control": {
+        "Red Rot (Colletotrichum falcatum)": {
+            "Diagnosis": "Reddish internal discoloration with alcohol smell",
+            "Complete Protection Protocol": {
+            "Sett Treatment": "Carbendazim 50WP (2g/L) for 10 mins",
+            "Resistant Varieties": "Co 0238, Co 98014"
+            }
+        },
+        "Grassy Shoot Disease": {
+            "Symptoms": "Thin, grass-like shoots",
+            "Only Solution": "Rogue infected clumps + Hot water therapy (54°C for 2 hrs)"
+        }
+        },
+        "Pest Eradication Program": {
+        "Early Shoot Borer": {
+            "Soil Application": "Fipronil 0.3G (12kg/acre) at planting",
+            "Biological Control": "Release Trichogramma @ 50,000/acre"
+        },
+        "Pyrilla": {
+            "Best Knockdown": "Imidacloprid 17.8SL (0.5ml/L) + sticker"
+        }
+        },
+        "Sugar Factory Secrets": {
+        "Ratoon Management": "2% urea spray on stubble immediately after harvest",
+        "Brix Booster": "Potassium humate (2ml/L) at grand growth stage"
+        }
+    },
+    "VEGETABLES (Mixed Crops)": {
+        "Universal Disease Package": {
+        "Damping Off": {
+            "Pro Prevention": {
+            "Seed Treatment": "Metalaxyl 2g + Trichoderma 5g/kg seed",
+            "Drench": "Copper oxychloride 3g/L at seedling stage"
+            }
+        },
+        "Powdery Mildew": {
+            "Best Organic": "Wettable sulfur 3g/L + Teepol (0.5ml/L)",
+            "Chemical Option": "Penconazole 10EC (1ml/L)"
+        }
+        },
+        "Cross-Crop Pest Control": {
+        "Aphids": {
+            "Resistance Management": "Rotate Imidacloprid (0.5ml/L) & Acetamiprid (0.3g/L)"
+        },
+        "Fruit Borers": {
+            "Night Spray": "Emamectin benzoate 5SG (0.4g/L) at dusk"
+        }
+        },
+        "Market-Ready Tips": {
+        "Leafy Vegetables": "Calcium nitrate 1% spray prevents tip burn",
+        "Fruiting Veggies": "Boron 0.2% spray improves fruit set"
+        }
+    },
+    "Agri-Chemical Masterclass": {
+        "Tank Mix Compatibility Chart": {
+        "Never Mix": "Copper compounds + Phosphorous products",
+        "Safe Combos": "Mancozeb + Most insecticides"
+        },
+        "Rainfast Additives": {
+        "Polymer stickers": "1ml/L for monsoon sprays"
+        },
+        "Resistance Prevention": {
+        "Fungicides": "Rotate FRAC groups 3, 11, 7",
+        "Insecticides": "Alternate IRAC groups 4A, 28, 3A"
+        }
+    },
+    "Paddy": {
+        "Diseases": {
+        "Blast (Leaf & Neck)": {
+            "Symptoms": "Diamond-shaped brown spots (leaves), blackened neck (panicle)",
+            "Emergency Control": "Tricyclazole 75% WP (1g/L) at first symptom",
+            "Resistant Strains Control": "Kasugamycin 3% SL (2ml/L)"
+        },
+        "Bacterial Leaf Blight": {
+            "Symptoms": "Yellow 'burn marks' along leaf edges",
+            "Breakthrough Treatment": "Streptocycline 100ppm + Copper Oxychloride (3g/L)",
+            "Pro Tip": "Drain field for 48 hours after spray"
+        }
+        },
+        "Pests": {
+        "Stem Borer": {
+            "Symptoms": "Dead Hearts at vegetative stage",
+            "Nuclear Option": "Cartap Hydrochloride 4G (8kg/acre) soil application",
+            "Foliar Spray": "Chlorantraniliprole 18.5% SC (0.3ml/L)"
+        },
+        "Brown Plant Hopper": {
+            "Symptoms": "Hopper Burn appearance",
+            "Resistance-Breaking Spray": "Buprofezin 25% SC (1.5ml/L) + Silicone surfactant"
+        }
+        },
+        "Nutrient Deficiencies": {
+        "Zinc Deficiency (Khaira Disease)": {
+            "Corrective Action": "ZnSO₄ 0.5% spray + 25kg/acre soil application"
+        }
+        },
+        "Silicon Benefits": {
+        "Application": "Rice hull ash (2t/acre) improves stem strength"
+        }
+    },
+    "Rice": {
+        "Diseases": {
+        "Blast (Leaf & Neck)": {
+            "Symptoms": "Diamond-shaped brown spots (leaves), blackened neck (panicle)",
+            "Emergency Control": "Tricyclazole 75% WP (1g/L) at first symptom",
+            "Resistant Strains Control": "Kasugamycin 3% SL (2ml/L)"
+        },
+        "Bacterial Leaf Blight": {
+            "Symptoms": "Yellow 'burn marks' along leaf edges",
+            "Breakthrough Treatment": "Streptocycline 100ppm + Copper Oxychloride (3g/L)",
+            "Pro Tip": "Drain field for 48 hours after spray"
+        }
+        },
+        "Pests": {
+        "Stem Borer": {
+            "Symptoms": "Dead Hearts at vegetative stage",
+            "Nuclear Option": "Cartap Hydrochloride 4G (8kg/acre) soil application",
+            "Foliar Spray": "Chlorantraniliprole 18.5% SC (0.3ml/L)"
+        },
+        "Brown Plant Hopper": {
+            "Symptoms": "Hopper Burn appearance",
+            "Resistance-Breaking Spray": "Buprofezin 25% SC (1.5ml/L) + Silicone surfactant"
+        }
+        },
+        "Nutrient Deficiencies": {
+        "Zinc Deficiency (Khaira Disease)": {
+            "Corrective Action": "ZnSO₄ 0.5% spray + 25kg/acre soil application"
+        }
+        },
+        "Silicon Benefits": {
+        "Application": "Rice hull ash (2t/acre) improves stem strength"
+        }
+    },
+    "Groundnut (Peanut)": {
+        "Diseases": {
+        "Tikka Disease (Early & Late Leaf Spot)": {
+            "Symptoms": "Target-like spots with yellow halo",
+            "Pro Spray Program": "Chlorothalonil 75% WP (2g/L) → Tebuconazole 25% EC (1ml/L) rotation"
+        },
+        "Collar Rot": {
+            "Symptoms": "Sudden Wilting of seedlings",
+            "Seed Treatment": "Carbendazim 2g + Thiram 2g/kg seed"
+        }
+        },
+        "Pests": {
+        "Leaf Miner": {
+            "Symptoms": "Serpentine Mines on leaves",
+            "Best Knockdown": "Abamectin 1.8% EC (0.5ml/L) + Wetting agent"
+        },
+        "Termites": {
+            "Soil Treatment": "Chlorpyriphos 20% EC (5L/acre in irrigation)"
+        }
+        },
+        "Yield Boosters": {
+        "Calcium Must": "Gypsum 200kg/acre at pegging stage",
+        "Harvest Signal": "80% pods show dark veins inside"
+        }
+    },
+    "Bajra (Pearl Millet)": {
+        "Diseases": {
+        "Downy Mildew": {
+            "Symptoms": "White fungal growth underside leaves",
+            "Seed Treatment": "Metalaxyl 35% SD (6g/kg seed)"
+        },
+        "Ergot": {
+            "Symptoms": "Honeydew Secretion on florets",
+            "Control": "Carbendazim 0.1% spray at flowering"
+        }
+        },
+        "Pests": {
+        "Shoot Fly": {
+            "Symptoms": "Dead Hearts in seedlings",
+            "Best Prevention": "Phorate 10G (8kg/acre) soil application"
+        },
+        "Head Miner": {
+            "Spray Timing": "Spinosad 45% SC (0.3ml/L) at 50% flowering"
+        }
+        },
+        "Drought Tricks": {
+        "Deep Sowing": "5cm depth for moisture access",
+        "Intercropping": "With cowpea reduces pest pressure"
+        }
+    },
+    "Wheat": {
+        "Diseases": {
+        "Yellow Rust": {
+            "Urea Trick": "2% urea spray enhances fungicide efficacy",
+            "Fungicide Rotation": "Tebuconazole 25% EC (1ml/L), Propiconazole 25% EC (1ml/L)"
+        },
+        "Karnal Bunt": {
+            "Symptoms": "Fishy Smell in grains",
+            "Seed Treatment": "Carbendazim 50% WP (2g/kg seed)"
+        }
+        },
+        "Pests": {
+        "Aphids": {
+            "Resistance Strategy": "Alternate Imidacloprid and Thiamethoxam"
+        },
+        "Armyworm": {
+            "Night Spray": "Chlorpyriphos 20% EC (2ml/L) after sunset"
+        }
+        },
+        "Quality Secrets": {
+        "Gluten Boost": "Foliar K₂O (1%) at milking stage",
+        "Terminal Heat": "Last irrigation at 50% flowering"
+        }
+    },
+    "Cotton": {
+        "Diseases": {
+        "Leaf Curl Virus": {
+            "Whitefly Management": "Acetamiprid 20% SP (0.3g/L) + Yellow sticky traps"
+        },
+        "Boll Rot": {
+            "Preventive Spray": "Carbendazim 12% + Mancozeb 63% WP (2g/L)"
+        }
+        },
+        "Pests": {
+        "Pink Bollworm": {
+            "Mating Disruption": "Pheromone traps @ 5/acre",
+            "Chemical Control": "Emamectin Benzoate 5% SG (0.4g/L)"
+        },
+        "Sucking Pests": {
+            "Tank Mix": "Fipronil 5% SC (1ml/L) + Dicofol 18.5% EC (2ml/L)"
+        }
+        },
+        "Bt Cotton Specifics": {
+        "Refuge Crop": "Minimum 5% non-Bt cotton",
+        "Termination": "Uproot plants by 15 Sept to prevent PBW carryover"
+        }
+    },
+    "Onion": {
+        "Diseases": {
+        "Purple Blotch": {
+            "Best Fungicide": "Azoxystrobin 23% SC (1ml/L) + sticker"
+        },
+        "Stemphylium Blight": {
+            "Spray Schedule": "Mancozeb 75% WP (2g/L) every 15 days"
+        }
+        },
+        "Pests": {
+        "Thrips": {
+            "Resistance Breaker": "Spinetoram 11.7% SC (0.3ml/L)"
+        },
+        "Onion Fly": {
+            "Soil Drench": "Chlorpyriphos 20% EC (3ml/L water)"
+        }
+        },
+        "Bulb Quality": {
+        "Sulphur Need": "20kg S/acre for pungency",
+        "Curing": "7 days shade drying before storage"
+        }
+    },
+    "Gram (Chickpea)": {
+        "Diseases": {
+        "Fusarium Wilt": {
+            "Seed Treatment": "Carbendazim 2g + Trichoderma 5g/kg seed"
+        },
+        "Botrytis Gray Mold": {
+            "Critical Spray": "Captan 50% WP (2g/L) at flowering"
+        }
+        },
+        "Pests": {
+        "Pod Borer": {
+            "Best Insecticide": "Indoxacarb 14.5% SC (0.5ml/L)"
+        },
+        "Cutworm": {
+            "Soil Treatment": "Phorate 10G (5kg/acre) at sowing"
+        }
+        },
+        "Yield Boosters": {
+        "Rhizobium Inoculation": "200g culture/10kg seed",
+        "Moisture Stress": "One irrigation at pod filling critical"
+        }
+    }
+  }
+  

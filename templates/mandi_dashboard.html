@@ -1,0 +1,796 @@
+{% extends "base.html" %}
+
+{% block title %}Mandi Dashboard - Green Sathi{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Date Range Picker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- Add custom styles -->
+<style>
+    .chart-container {
+        position: relative;
+        transition: all 0.3s ease;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1rem;
+    }
+
+    .chart-container:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-row-striped tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    .table-row-striped tr:hover {
+        background-color: #f0f0f0;
+    }
+
+    .filter-section {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .filter-section:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .loading-spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #22c55e;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Adjust page width */
+    .container {
+        max-width: 95% !important;
+    }
+
+    /* Ensure table is responsive */
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    /* Chart grid layouts */
+    .chart-grid-1 {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .chart-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .chart-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .chart-grid-4 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+
+        .chart-grid-2,
+        .chart-grid-3,
+        .chart-grid-4 {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                    <i class="fa-solid fa-chart-line text-farmer-green-600 mr-2"></i>
+                    Mandi Dashboard
+                </h1>
+                <p class="text-gray-600">Analyze mandi prices and market trends across different locations and
+                    commodities.</p>
+            </div>
+            <a href="/advance-mandi-analysis" target="_blank"
+                class="bg-farmer-green-600 text-white px-6 py-2 rounded-md hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-farmer-green-500 focus:ring-offset-2 transition-colors duration-200">
+                Advanced Analysis
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Analysis Type -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">Analysis Type</label>
+                <div class="flex space-x-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="analysis_type" value="latest" checked
+                            class="form-radio text-farmer-green-600 focus:ring-farmer-green-500">
+                        <span class="ml-2 text-sm text-gray-700">Latest</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="analysis_type" value="past"
+                            class="form-radio text-farmer-green-600 focus:ring-farmer-green-500">
+                        <span class="ml-2 text-sm text-gray-700">Past</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- State Selection -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">State</label>
+                <select id="state"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-farmer-green-500 focus:ring-farmer-green-500">
+                    <option value="">Select State</option>
+                </select>
+            </div>
+
+            <!-- District Selection -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">District</label>
+                <select id="district"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-farmer-green-500 focus:ring-farmer-green-500">
+                    <option value="">All Districts</option>
+                </select>
+            </div>
+
+            <!-- Commodity Selection -->
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">Commodity</label>
+                <select id="commodity"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-farmer-green-500 focus:ring-farmer-green-500">
+                    <option value="">All Commodities</option>
+                </select>
+            </div>
+
+            <!-- Date Range (initially hidden) -->
+            <div id="date_range_container" class="space-y-2 hidden">
+                <label class="block text-sm font-medium text-gray-700">Date Range</label>
+                <div class="flex space-x-2">
+                    <input type="text" id="date_range"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-farmer-green-500 focus:ring-farmer-green-500"
+                        placeholder="Select date range">
+                    <button id="apply_date_range"
+                        class="px-4 py-2 bg-farmer-green-600 text-white rounded-md hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-farmer-green-500 focus:ring-offset-2">
+                        Apply
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Mandi Data</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 table-row-striped">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Market</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Commodity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Variety</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grade</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Arrival Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Min Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Max Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Modal Price</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody" class="bg-white divide-y divide-gray-200">
+                    <!-- Rows go here -->
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
+                <p class="text-sm text-gray-700">
+                    Showing <span id="startIndex">1</span> to <span id="endIndex">10</span> of <span
+                        id="totalItems">0</span> results
+                </p>
+                <div class="flex items-center space-x-2">
+                    <button id="prevPageBtn"
+                        class="px-3 py-1 border rounded bg-gray-200 text-gray-700">Previous</button>
+                    <div id="pageNumbers" class="flex space-x-1"></div>
+                    <button id="nextPageBtn" class="px-3 py-1 border rounded bg-gray-200 text-gray-700">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Container -->
+    <div id="charts_container" class="space-y-6">
+        <!-- Dynamic charts will be inserted here -->
+    </div>
+
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize variables
+    let state = '';
+    let district = '';
+    let commodity = '';
+    let analysisType = 'latest';
+    let startDate = '';
+    let endDate = '';
+
+    // Chart instances
+    let charts = {};
+
+    // Show/hide loading overlay
+    function showLoading() {
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+
+    // Initialize date range picker
+    const dateRangePicker = flatpickr("#date_range", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        onChange: function (selectedDates) {
+            if (selectedDates.length === 2) {
+                startDate = selectedDates[0].toISOString().split('T')[0];
+                endDate = selectedDates[1].toISOString().split('T')[0];
+            }
+        }
+    });
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function () {
+        // Analysis type change
+        document.querySelectorAll('input[name="analysis_type"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                analysisType = this.value;
+                document.getElementById('date_range_container').classList.toggle('hidden', analysisType === 'latest');
+                updateDashboard();
+            });
+        });
+
+        // Apply date range button
+        document.getElementById('apply_date_range').addEventListener('click', function () {
+            updateDashboard();
+        });
+
+        // State change
+        document.getElementById('state').addEventListener('change', function () {
+            state = this.value;
+            district = '';
+            commodity = '';
+            document.getElementById('district').innerHTML = '<option value="">All Districts</option>';
+            document.getElementById('commodity').innerHTML = '<option value="">All Commodities</option>';
+            if (state) {
+                fetchDistricts(state);
+                fetchCommodities(state); // Fetch all commodities for the state
+            }
+            updateDashboard();
+        });
+
+        // District change
+        document.getElementById('district').addEventListener('change', function () {
+            district = this.value;
+            commodity = '';
+            document.getElementById('commodity').innerHTML = '<option value="">All Commodities</option>';
+            if (state) {
+                fetchCommodities(state, district); // Fetch commodities filtered by state and district
+            }
+            updateDashboard();
+        });
+
+        // Commodity change
+        document.getElementById('commodity').addEventListener('change', function () {
+            commodity = this.value;
+            updateDashboard();
+        });
+
+        // Initial load
+        initializeDashboard();
+    });
+
+    // Initialize dashboard with user's state
+    async function initializeDashboard() {
+        showLoading();
+        try {
+            // First fetch all states
+            await fetchStates();
+
+            // Then fetch user's location and set default state
+            const response = await fetch('/api/user/location');
+            const data = await response.json();
+
+            if (data.state) {
+                state = data.state;
+                document.getElementById('state').value = state;
+                await fetchDistricts(state);
+                await fetchCommodities(state);
+                updateDashboard();
+            }
+        } catch (error) {
+            console.error('Error initializing dashboard:', error);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // Fetch states
+    async function fetchStates() {
+        try {
+            const response = await fetch('/api/mandi/states');
+            const states = await response.json();
+
+            const stateSelect = document.getElementById('state');
+            states.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                stateSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error fetching states:', error);
+        }
+    }
+
+    // Fetch districts
+    async function fetchDistricts(state) {
+        try {
+            const response = await fetch(`/api/mandi/districts/${state}`);
+            const districts = await response.json();
+
+            const districtSelect = document.getElementById('district');
+            districts.forEach(district => {
+                const option = document.createElement('option');
+                option.value = district;
+                option.textContent = district;
+                districtSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error fetching districts:', error);
+        }
+    }
+
+    // Fetch commodities
+    async function fetchCommodities(state, district = '') {
+        try {
+            let url = `/api/mandi/commodities/${state}`;
+            if (district) {
+                url += `?district=${district}`;
+            }
+
+            const response = await fetch(url);
+            const commodities = await response.json();
+
+            const commoditySelect = document.getElementById('commodity');
+            commoditySelect.innerHTML = '<option value="">All Commodities</option>';
+
+            commodities.forEach(commodity => {
+                const option = document.createElement('option');
+                option.value = commodity;
+                option.textContent = commodity;
+                commoditySelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error fetching commodities:', error);
+        }
+    }
+
+    // Update dashboard data
+    async function updateDashboard() {
+        showLoading();
+        try {
+            let url = '/api/mandi/dashboard-data?';
+            if (state) url += `state=${state}&`;
+            if (district) url += `district=${district}&`;
+            if (commodity) url += `commodity=${commodity}&`;
+            url += `analysis_type=${analysisType}`;
+            if (analysisType === 'past' && startDate && endDate) {
+                url += `&start_date=${startDate}&end_date=${endDate}`;
+            }
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            // Clear existing charts
+            clearCharts();
+
+            // Create appropriate charts based on data and analysis type
+            createCharts(data);
+            updateTable(data.table_data);
+        } catch (error) {
+            console.error('Error updating dashboard:', error);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // Clear all existing charts
+    function clearCharts() {
+        Object.values(charts).forEach(chart => {
+            if (chart) chart.destroy();
+        });
+        charts = {};
+        document.getElementById('charts_container').innerHTML = '';
+    }
+
+    // Create appropriate charts based on data
+    function createCharts(data) {
+        const container = document.getElementById('charts_container');
+
+        // Determine which charts to show based on data and analysis type
+        if (analysisType === 'latest') {
+            // For latest data, show relevant charts based on data availability
+            if (data.commodity_distribution.labels.length > 1) {
+                createCommodityDistributionChart(data.commodity_distribution);
+            }
+            createPriceRangeChart(data.price_ranges);
+            if (data.market_comparison.labels.length > 1) {
+                createMarketComparisonChart(data.market_comparison);
+            }
+        } else {
+            // For past data, show time series and other relevant charts
+            createPriceTrendsChart(data.price_trends);
+            if (data.commodity_distribution.labels.length > 1) {
+                createCommodityDistributionChart(data.commodity_distribution);
+            }
+            createPriceRangeChart(data.price_ranges);
+            if (data.market_comparison.labels.length > 1) {
+                createMarketComparisonChart(data.market_comparison);
+            }
+        }
+    }
+
+    // Create Price Trends Chart
+    function createPriceTrendsChart(data) {
+        const container = document.createElement('div');
+        container.className = 'chart-container';
+        container.innerHTML = `
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Price Trends</h2>
+            <div class="h-80">
+                <canvas id="priceTrendsChart"></canvas>
+            </div>
+        `;
+        document.getElementById('charts_container').appendChild(container);
+
+        charts.priceTrends = new Chart(document.getElementById('priceTrendsChart'), {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Modal Price',
+                    data: data.modal_prices,
+                    borderColor: '#22c55e',
+                    tension: 0.1,
+                    fill: true,
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+    }
+
+    // Create Commodity Distribution Chart
+    function createCommodityDistributionChart(data) {
+        const container = document.createElement('div');
+        container.className = 'chart-container';
+        container.innerHTML = `
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Commodity Distribution</h2>
+            <div class="h-80">
+                <canvas id="commodityDistributionChart"></canvas>
+            </div>
+        `;
+        document.getElementById('charts_container').appendChild(container);
+
+        charts.commodityDistribution = new Chart(document.getElementById('commodityDistributionChart'), {
+            type: 'pie',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.values,
+                    backgroundColor: [
+                        '#22c55e', '#eab308', '#f97316', '#3b82f6', '#8b5cf6',
+                        '#ec4899', '#14b8a6', '#f43f5e', '#84cc16', '#06b6d4'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+    }
+
+    // Create Market Comparison Chart
+    function createMarketComparisonChart(data) {
+        const container = document.createElement('div');
+        container.className = 'chart-container';
+        container.innerHTML = `
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Market Price Comparison</h2>
+            <div class="h-80">
+                <canvas id="marketComparisonChart"></canvas>
+            </div>
+        `;
+        document.getElementById('charts_container').appendChild(container);
+
+        charts.marketComparison = new Chart(document.getElementById('marketComparisonChart'), {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Average Price',
+                    data: data.prices,
+                    backgroundColor: '#22c55e'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+    }
+
+    // Create Price Range Chart
+    function createPriceRangeChart(data) {
+        const container = document.createElement('div');
+        container.className = 'chart-container';
+        container.innerHTML = `
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Price Range Analysis</h2>
+            <div class="h-80">
+                <canvas id="priceRangesChart"></canvas>
+            </div>
+        `;
+        document.getElementById('charts_container').appendChild(container);
+
+        const minPrices = data.ranges.map(range => range[0]);
+        const maxPrices = data.ranges.map(range => range[2]);
+
+        charts.priceRanges = new Chart(document.getElementById('priceRangesChart'), {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [
+                    {
+                        label: 'Min Price',
+                        data: minPrices,
+                        backgroundColor: 'rgba(34, 197, 94, 0.5)',
+                        borderColor: '#22c55e',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Max Price',
+                        data: maxPrices,
+                        backgroundColor: 'rgba(239, 68, 68, 0.5)',
+                        borderColor: '#ef4444',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const value = context.raw;
+                                return `${context.dataset.label}: ₹${value.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return '₹' + value.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Update table with pagination
+    let currentPage = 1;
+    const rowsPerPage = 10;
+    let allData = [];
+
+    function updateTable(data) {
+        allData = data;
+        currentPage = 1;
+        renderTable();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('dataTableBody');
+        tbody.innerHTML = '';
+
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = Math.min(startIndex + rowsPerPage, allData.length);
+        const pageData = allData.slice(startIndex, endIndex);
+
+        document.getElementById('startIndex').textContent = startIndex + 1;
+        document.getElementById('endIndex').textContent = endIndex;
+        document.getElementById('totalItems').textContent = allData.length;
+
+        updatePageNumbers();
+
+        const prevButton = document.getElementById('prevPageBtn');
+        const nextButton = document.getElementById('nextPageBtn');
+
+        prevButton.disabled = currentPage === 1;
+        nextButton.disabled = currentPage >= Math.ceil(allData.length / rowsPerPage);
+
+        prevButton.classList.toggle('opacity-50', currentPage === 1);
+        prevButton.classList.toggle('cursor-not-allowed', currentPage === 1);
+        nextButton.classList.toggle('opacity-50', currentPage >= Math.ceil(allData.length / rowsPerPage));
+        nextButton.classList.toggle('cursor-not-allowed', currentPage >= Math.ceil(allData.length / rowsPerPage));
+
+        pageData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row.market || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row.commodity || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row.variety || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row.grade || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row.arrival_date ? new Date(row.arrival_date).toLocaleDateString() : '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹${row.min_price || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹${row.max_price || '-'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹${row.modal_price || '-'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updatePageNumbers() {
+        const totalPages = Math.ceil(allData.length / rowsPerPage);
+        const pageNumbersContainer = document.getElementById('pageNumbers');
+        pageNumbersContainer.innerHTML = '';
+
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+        if (startPage > 1) {
+            addPageNumber(1);
+            if (startPage > 2) addEllipsis();
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            addPageNumber(i);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) addEllipsis();
+            addPageNumber(totalPages);
+        }
+    }
+
+    function addPageNumber(pageNum) {
+        const container = document.getElementById('pageNumbers');
+        const btn = document.createElement('button');
+        btn.className = `px-3 py-1 text-sm border rounded ${pageNum === currentPage ? 'bg-green-200 border-green-500 text-green-700' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`;
+        btn.textContent = pageNum;
+        btn.addEventListener('click', () => {
+            currentPage = pageNum;
+            renderTable();
+        });
+        container.appendChild(btn);
+    }
+
+    function addEllipsis() {
+        const container = document.getElementById('pageNumbers');
+        const span = document.createElement('span');
+        span.className = 'px-3 py-1 text-sm text-gray-500';
+        span.textContent = '...';
+        container.appendChild(span);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('prevPageBtn').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        });
+        document.getElementById('nextPageBtn').addEventListener('click', () => {
+            const totalPages = Math.ceil(allData.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        });
+    });
+</script>
+{% endblock %}

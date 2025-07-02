@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Government Schemes - Green Sathi{% endblock %}
+
+{% block content %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div class="flex items-center gap-4 mb-4 md:mb-0">
+            <label for="type-filter" class="font-semibold text-farmer-green-800">Type:</label>
+            <select id="type-filter" class="rounded-md border-farmer-green-300 shadow-sm focus:border-farmer-green-600 focus:ring-farmer-green-600 bg-farmer-green-50 text-farmer-green-900">
+                <option value="All">All Types</option>
+            </select>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="lang-toggle" class="bg-farmer-green-600 text-white px-4 py-2 rounded shadow hover:bg-farmer-yellow-400 hover:text-farmer-green-900 transition-colors duration-200">
+                हिंदी में देखें
+            </button>
+        </div>
+    </div>
+    <div id="schemes-list" class="flex flex-col gap-8">
+        {% for scheme in schemes %}
+        <div class="scheme-card w-full bg-farmer-green-50 rounded-2xl shadow-lg p-8 border-2 border-farmer-green-200 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden" data-aos="fade-up" data-type="{{ scheme.type }}">
+            <div class="absolute -top-8 -right-8 w-32 h-32 bg-farmer-yellow-100 rounded-full z-0 animate-pulse"></div>
+            <div class="relative z-10">
+                <h3 class="text-2xl font-bold text-farmer-green-800 mb-2 scheme-name">{{ scheme.scheme_name }}</h3>
+                <h4 class="text-lg font-semibold text-farmer-yellow-700 mb-1 scheme-type">{{ scheme.type }}</h4>
+                <div class="mb-2">
+                    <span class="inline-block bg-farmer-yellow-100 text-farmer-yellow-900 text-xs px-2 py-1 rounded">Launched: {{ scheme.launch_year }}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="font-semibold text-farmer-green-900">Benefit:</span>
+                    <span class="scheme-benefit">{{ scheme.benefit }}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="font-semibold text-farmer-green-900">Eligibility:</span>
+                    <span class="scheme-eligibility">{{ scheme.eligibility }}</span>
+                </div>
+                <div class="flex gap-2 mt-4">
+                    <button class="desc-btn bg-farmer-yellow-100 text-farmer-green-900 px-3 py-1 rounded hover:bg-farmer-yellow-200 transition">Description</button>
+                </div>
+                <div class="desc-popup hidden mt-4 bg-farmer-yellow-50 border border-farmer-yellow-200 rounded p-3 text-farmer-green-900 shadow-lg">
+                    <div class="desc-english">{{ scheme.description.english }}</div>
+                    <div class="desc-hindi hidden">{{ scheme.description.hindi }}</div>
+                    <div class="mt-2">
+                        <span class="font-semibold">Documents Required:</span>
+                        <ul class="list-disc list-inside text-sm mt-1">
+                            {% for doc in scheme.documents_required %}
+                            <li>{{ doc }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <a href="{{ scheme.apply_link }}" target="_blank" class="block w-full mt-6 text-center bg-farmer-green-600 hover:bg-farmer-yellow-400 hover:text-farmer-green-900 text-white font-semibold py-2 rounded-lg shadow transition-all duration-200 text-lg">Apply / Official Link</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+// Make schemes available as a JS variable
+const schemes = {{ schemes|tojson|safe }};
+let currentLang = 'english';
+
+// Extract unique type values from schemes data
+function getUniqueTypes() {
+    const types = new Set();
+    schemes.forEach(s => {
+        // If it's a state type, extract just the state name
+        if (s.type.startsWith('State(')) {
+            const stateName = s.type.replace('State(', '').replace(')', '').trim();
+            types.add(stateName);
+        } else {
+            types.add(s.type);
+        }
+    });
+    return Array.from(types).sort();
+}
+
+// Populate type dropdown with all unique types
+function populateTypeDropdown() {
+    const typeFilter = document.getElementById('type-filter');
+    const types = getUniqueTypes();
+    typeFilter.innerHTML = '<option value="All">All Types</option>' + 
+        types.map(t => `<option value="${t}">${t}</option>`).join('');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    populateTypeDropdown();
+    filterSchemes();
+});
+
+// Animation: fast and reversible (on every scroll)
+AOS.init({ duration: 400, once: false });
+
+// Filter logic
+const typeFilter = document.getElementById('type-filter');
+const schemesList = document.getElementById('schemes-list');
+
+typeFilter.addEventListener('change', filterSchemes);
+
+function filterSchemes() {
+    const selectedType = typeFilter.value;
+    document.querySelectorAll('.scheme-card').forEach(card => {
+        const cardType = card.getAttribute('data-type');
+        let show = false;
+        
+        if (selectedType === 'All') {
+            show = true;
+        } else if (selectedType === 'Central') {
+            show = cardType === 'Central';
+        } else {
+            // For state types, check if the card's type contains the selected state
+            show = cardType.includes(selectedType);
+        }
+        
+        card.style.display = show ? '' : 'none';
+    });
+    // Refresh AOS animations after filtering
+    setTimeout(() => { AOS.refreshHard(); }, 100);
+}
+
+// Language toggle
+const langToggle = document.getElementById('lang-toggle');
+langToggle.addEventListener('click', function() {
+    currentLang = currentLang === 'english' ? 'hindi' : 'english';
+    langToggle.textContent = currentLang === 'english' ? 'हिंदी में देखें' : 'View in English';
+    document.querySelectorAll('.scheme-card').forEach((card, idx) => {
+        card.querySelector('.scheme-name').textContent = currentLang === 'english' ? schemes[idx].scheme_name : schemes[idx].scheme_name_hindi;
+        card.querySelector('.scheme-type').textContent = schemes[idx].type;
+        card.querySelector('.scheme-benefit').textContent = currentLang === 'english' ? schemes[idx].benefit : schemes[idx].benefit_hindi;
+        card.querySelector('.scheme-eligibility').textContent = currentLang === 'english' ? schemes[idx].eligibility : schemes[idx].eligibility_hindi;
+        card.querySelector('.desc-english').classList.toggle('hidden', currentLang !== 'english');
+        card.querySelector('.desc-hindi').classList.toggle('hidden', currentLang === 'english');
+    });
+});
+
+// Description popup logic
+schemesList.addEventListener('click', function(e) {
+    if (e.target.classList.contains('desc-btn')) {
+        const card = e.target.closest('.scheme-card');
+        const popup = card.querySelector('.desc-popup');
+        popup.classList.toggle('hidden');
+        // Animate popup
+        if (!popup.classList.contains('hidden')) {
+            popup.classList.add('animate__animated', 'animate__fadeInUp');
+            setTimeout(() => popup.classList.remove('animate__animated', 'animate__fadeInUp'), 800);
+        }
+    }
+});
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+{% endblock %} 

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat Session - Green Sathi{% endblock %}
+
+{% block extra_head %}
+<style>
+    .chat-container {
+        height: calc(100vh - 250px);
+        min-height: 400px;
+    }
+    
+    .message-bubble {
+        max-width: 80%;
+    }
+    
+    .user-message {
+        background-color: #e2f7df;
+        border-radius: 18px 18px 0 18px;
+    }
+    
+    .bot-message {
+        background-color: #f0f0f0;
+        border-radius: 18px 18px 18px 0;
+    }
+    
+    /* Formatting for bot messages */
+    .bot-message ul {
+        list-style-type: disc;
+        padding-left: 1.5rem;
+        margin: 0.5rem 0;
+    }
+    
+    .bot-message ol {
+        list-style-type: decimal;
+        padding-left: 1.5rem;
+        margin: 0.5rem 0;
+    }
+    
+    .bot-message p {
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="relative">
+    <!-- Main Chat Interface -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- Chat Header -->
+        <div class="farmer-gradient text-white p-4">
+            <div class="flex items-center">
+                <div>
+                    <h2 class="text-lg font-semibold">Chat Session History</h2>
+                    <p class="text-xs text-white text-opacity-80">
+                        Language: <span class="font-semibold">{{ language|title }}</span>
+                    </p>
+                </div>
+                <div class="ml-auto">
+                    <button 
+                        data-chat-id="{{ chat.id }}" 
+                        class="delete-chat-btn bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-sm rounded-md border border-white border-opacity-30 mr-2">
+                        <i class="fa-solid fa-trash-alt mr-1"></i> Delete Chat
+                    </button>
+                    <a href="{{ url_for('history') }}" class="bg-white bg-opacity-20 text-white px-3 py-1 text-sm rounded-md border border-white border-opacity-30">
+                        <i class="fa-solid fa-arrow-left mr-1"></i> Back to History
+                    </a>
+                    <a href="{{ url_for('chat') }}" class="bg-white bg-opacity-20 text-white px-3 py-1 text-sm rounded-md border border-white border-opacity-30 ml-2">
+                        <i class="fa-solid fa-comment mr-1"></i> New Chat
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Messages -->
+        <div id="chatMessages" class="chat-container p-4 overflow-y-auto">
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.sender == 'user' %}
+                    <!-- User Message -->
+                    <div class="flex justify-end mb-4">
+                        <div class="message-bubble user-message p-3">
+                            <p>{{ message.text }}</p>
+                            <p class="text-xs text-gray-500 text-right mt-1">
+                                {{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                                {% if message.input_type != 'text' %}
+                                    • {{ message.input_type }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Bot Response -->
+                    <div class="flex mb-4">
+                        <div class="message-bubble bot-message p-3">
+                            <div class="formatted-message">{{ message.text|safe }}</div>
+                            <p class="text-xs text-gray-500 mt-1">{{ message.timestamp.strftime('%H:%M') }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-gray-500 mt-8">
+                    <p>No messages found in this chat session</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto scroll to bottom of chat
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Add event listener for delete button
+        const deleteBtn = document.querySelector('.delete-chat-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                const chatId = this.getAttribute('data-chat-id');
+                if (confirm('Are you sure you want to delete this chat?')) {
+                    fetch(`/api/delete_chat/${chatId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to delete chat');
+                        }
+                        window.location.href = '{{ url_for("history") }}';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to delete chat. Please try again.');
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %} 

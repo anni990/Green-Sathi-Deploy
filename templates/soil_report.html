@@ -1,0 +1,767 @@
+{% extends 'base.html' %}
+
+{% block title %}Soil Report Analysis - Green Sathi{% endblock %}
+
+{% block extra_head %}
+<style>
+    .soil-report-container {
+        max-width: 100%;
+        margin: 2rem auto;
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .soil-header {
+        background: linear-gradient(135deg, #15803d 0%, #67cd45 100%);
+        color: white;
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    .soil-header h1 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .soil-content {
+        padding: 2rem;
+    }
+
+    .input-section {
+        margin-bottom: 2rem;
+    }
+
+    .camera-container {
+        width: 100%;
+        height: 100%;
+        background-color: #f3f4f6;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+    #cameraFeed {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .camera-overlay {
+        position: absolute;
+        bottom: 1rem;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .preview-container {
+        display: none;
+        width: auto;
+        min-height: 300px;
+        max-height: 400px;
+        background-color: #f3f4f6;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 1rem;
+        padding: 10px;
+        border: 1px solid #e5e7eb;
+    }
+
+    #uploadPreview,
+    #cameraPreview {
+        width: 100%;
+        height: 100%;
+        max-height: 380px;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .custom-file-input::-webkit-file-upload-button {
+        visibility: hidden;
+    }
+
+    .custom-file-input::before {
+        content: 'Select file';
+        display: inline-block;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        padding: 0.5rem 1rem;
+        outline: none;
+        white-space: nowrap;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 0.875rem;
+        color: #374151;
+        background-color: white;
+    }
+
+    .custom-file-input:hover::before {
+        border-color: #9ca3af;
+    }
+
+    .custom-file-input:active::before {
+        background-color: #f3f4f6;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-primary {
+        background-color: #15803d;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-primary:hover {
+        background-color: #166534;
+    }
+
+    .btn-primary:disabled {
+        background-color: #a3a3a3;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .btn-secondary {
+        background-color: #6b7280;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-secondary:hover {
+        background-color: #4b5563;
+    }
+
+    .result-container {
+        display: none;
+        margin-top: 2rem;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        background-color: #f9fafb;
+    }
+
+    .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .result-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .result-parameter {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .result-parameter .name {
+        font-weight: 500;
+        color: #4b5563;
+    }
+
+    .result-parameter .value {
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .recommendations {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .recommendations h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.75rem;
+    }
+
+    .crop-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .crop-item {
+        background-color: #dcfce7;
+        color: #166534;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .primary-crop {
+        background-color: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    .language-switch {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+
+    .switch-button {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .switch-button:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Results layout adjustments */
+    .results-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+        .results-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .soil-params-container {
+        padding: 1rem;
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .location-container {
+        padding: 1rem;
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Crop Variety Carousel */
+    .crop-varieties-section {
+        margin-top: 2.5rem;
+        padding: 1.5rem;
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .variety-carousel {
+        position: relative;
+        margin: 1.5rem auto;
+        max-width: 90%;
+        overflow: hidden;
+    }
+
+    .variety-carousel-inner {
+        white-space: nowrap;
+        transition: transform 0.5s ease;
+    }
+
+    .variety-slide {
+        display: inline-block;
+        width: 100%;
+        white-space: normal;
+        padding: 0 0.5rem;
+    }
+
+    .carousel-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 1rem;
+    }
+
+    .carousel-dots {
+        display: flex;
+        gap: 0.5rem;
+        margin: 0 1rem;
+    }
+
+    .carousel-dot {
+        width: 0.75rem;
+        height: 0.75rem;
+        border-radius: 50%;
+        background-color: #d1d5db;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .carousel-dot.active {
+        background-color: #15803d;
+    }
+
+    .carousel-prev,
+    .carousel-next {
+        background-color: #15803d;
+        color: white;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: none;
+        font-size: 1.25rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .carousel-prev:hover,
+    .carousel-next:hover {
+        background-color: #166534;
+    }
+
+    .carousel-prev:disabled,
+    .carousel-next:disabled {
+        background-color: #d1d5db;
+        cursor: not-allowed;
+    }
+
+    /* Variety Card Styling */
+    .variety-card {
+        background-color: white;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        transform-origin: center;
+        margin: 0 auto;
+        max-width: 95%;
+        border: 1px solid #e5e7eb;
+    }
+
+    .variety-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .variety-card-header {
+        background: linear-gradient(135deg, #15803d 0%, #4ade80 100%);
+        color: white;
+        padding: 1rem;
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .variety-card-body {
+        padding: 1.5rem;
+    }
+
+    .key-metrics {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 1.5rem;
+        background-color: #f0fdf4;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border: 1px dashed #86efac;
+    }
+
+    .metric {
+        text-align: center;
+    }
+
+    .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #15803d;
+    }
+
+    .metric-label {
+        font-size: 0.75rem;
+        color: #4b5563;
+        margin-top: 0.25rem;
+    }
+
+    .key-traits {
+        margin-bottom: 1.5rem;
+    }
+
+    .traits-title {
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+
+    .traits-content {
+        color: #4b5563;
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .details-toggle {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        margin-top: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+
+    .details-toggle:hover {
+        background-color: #e5e7eb;
+    }
+
+    .details-toggle:focus {
+        outline: 2px solid #86efac;
+    }
+
+    .details-content {
+        display: none;
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: #f9fafb;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .details-item {
+        margin-bottom: 0.5rem;
+        display: flex;
+    }
+
+    .details-label {
+        font-weight: 600;
+        min-width: 8rem;
+        color: #4b5563;
+    }
+
+    .details-value {
+        color: #111827;
+        flex: 1;
+    }
+
+    .fertilizer-details {
+        margin-top: 1rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    /* Animation and transitions */
+    .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .slide-in {
+        animation: slideIn 0.5s ease-in-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .pulse {
+        animation: pulse 5s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        50% {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slide {
+        0% {
+            transform: translateX(0);
+        }
+
+        100% {
+            transform: translateX(-100%);
+        }
+    }
+</style>
+<!-- PDF.js library for PDF preview -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+    // Set the workerSrc property to the PDF.js worker file
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="soil-report-container">
+    <div class="soil-header">
+        <h1 id="pageTitle">Soil Report Analysis</h1>
+        <p id="pageDescription">Upload your soil report to get personalized crop and fertilizer recommendations based on
+            your soil parameters.</p>
+        <div class="language-switch">
+            <button id="languageToggle" class="switch-button">
+                <span id="currentLang">English</span> <i class="fa-solid fa-language"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="soil-content">
+        <div id="inputForm" class="input-section fade-in">
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-2" id="uploadTitle">Upload Soil Report</h2>
+                <p class="text-gray-600" id="uploadInstructions">Please upload your soil test report or take a picture
+                    to analyze.</p>
+            </div>
+
+            <div class="flex gap-4 mb-4">
+                <button id="uploadTabBtn"
+                    class="tab-button active bg-green-50 text-green-700 px-4 py-2 rounded-md border border-green-200">
+                    <i class="fa-solid fa-upload mr-2"></i> <span id="uploadTabText">Upload Report</span>
+                </button>
+                <button id="cameraTabBtn"
+                    class="tab-button bg-gray-50 text-gray-700 px-4 py-2 rounded-md border border-gray-200">
+                    <i class="fa-solid fa-camera mr-2"></i> <span id="cameraTabText">Take Picture</span>
+                </button>
+            </div>
+
+            <div id="uploadSection">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center mb-4">
+                    <input type="file" id="reportUpload" class="custom-file-input mb-2 text-lg"
+                        accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                    <p class="text-sm text-gray-500" id="uploadHint">Drag and drop your soil report or click to browse
+                    </p>
+                    <div class="mt-2 text-sm text-gray-600">
+                        <p id="formatHint">Supported formats: Images (JPG, PNG, etc.), PDF (single page only)</p>
+                        <p id="fileHint" class="font-semibold mt-1 text-amber-600">Note: For PDF reports, please ensure
+                            the file contains only a single page with the soil analysis.</p>
+                    </div>
+                </div>
+                <div class="preview-container" id="uploadPreviewContainer">
+                    <img id="uploadPreview" src="" alt="Report preview">
+                </div>
+            </div>
+
+            <div id="cameraSection" class="hidden">
+                <div class="camera-container mb-4">
+                    <video id="cameraFeed" autoplay playsinline></video>
+                    <div class="camera-overlay">
+                        <button id="captureBtn" class="btn-primary">
+                            <i class="fa-solid fa-camera mr-1"></i> <span id="captureText">Capture</span>
+                        </button>
+                        <button id="switchCameraBtn" class="btn-secondary">
+                            <i class="fa-solid fa-sync mr-1"></i> <span id="switchCameraText">Switch Camera</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="preview-container" id="cameraPreviewContainer">
+                    <img id="cameraPreview" src="" alt="Captured image">
+                    <button id="retakeBtn" class="btn-secondary absolute bottom-2 right-2">
+                        <i class="fa-solid fa-redo mr-1"></i> <span id="retakeText">Retake</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button id="processBtn" class="btn-primary px-6 py-3 text-lg" disabled>
+                    <i class="fa-solid fa-microscope mr-2"></i> <span id="processText">Process Soil Report</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="loadingIndicator" class="hidden text-center py-10">
+            <div class="inline-block pulse p-4 bg-green-50 rounded-full">
+                <i class="fa-solid fa-spinner fa-spin text-4xl text-green-600"></i>
+            </div>
+            <p class="mt-4 text-lg text-gray-700" id="processingText">Processing your soil report...</p>
+            <p class="text-sm text-gray-500 mt-2" id="pleaseWaitText">Please wait, this may take a moment.</p>
+        </div>
+
+        <div id="resultContainer" class="result-container fade-in">
+            <div class="mt-6 text-center">
+                <button id="newAnalysisBtn" class="btn-secondary px-4 py-2">
+                    <i class="fa-solid fa-redo mr-1"></i> <span id="newAnalysisText">New Analysis</span>
+                </button>
+            </div>
+
+            <div class="result-header">
+                <h2 id="resultTitle">Soil Analysis Results</h2>
+                <div class="text-sm text-gray-500" id="resultDate"></div>
+            </div>
+
+            <div class="results-grid">
+                <div class="soil-params-container">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3" id="soilParamsTitle">Soil Parameters</h3>
+                    <div id="soilParams">
+                        <div class="result-parameter">
+                            <div class="name" id="phLabel">pH Level</div>
+                            <div class="value" id="phValue">-</div>
+                        </div>
+                        <div class="result-parameter">
+                            <div class="name" id="ecLabel">EC</div>
+                            <div class="value" id="ecValue">-</div>
+                        </div>
+                        <div class="result-parameter">
+                            <div class="name" id="ocLabel">Organic Carbon</div>
+                            <div class="value" id="ocValue">-</div>
+                        </div>
+                        <div class="result-parameter">
+                            <div class="name" id="nitrogenLabel">Nitrogen</div>
+                            <div class="value" id="nitrogenValue">-</div>
+                        </div>
+                        <div class="result-parameter">
+                            <div class="name" id="phosphorusLabel">Phosphorus</div>
+                            <div class="value" id="phosphorusValue">-</div>
+                        </div>
+                        <div class="result-parameter">
+                            <div class="name" id="potassiumLabel">Potassium</div>
+                            <div class="value" id="potassiumValue">-</div>
+                        </div>
+                        <div class="result-parameter">
+                            <div class="name" id="zincLabel">Zinc</div>
+                            <div class="value" id="zincValue">-</div>
+                        </div>
+                        <div class="result-parameter">
+                            <div class="name" id="copperLabel">Copper</div>
+                            <div class="value" id="copperValue">-</div>
+                        </div>
+                        <div class="result-parameter">
+                            <div class="name" id="ironLabel">Iron</div>
+                            <div class="value" id="ironValue">-</div>
+                        </div>
+                        <div class="result-parameter">
+                            <div class="name" id="manganeseLabel">Manganese</div>
+                            <div class="value" id="manganeseValue">-</div>
+                        </div>
+                        <div class="result-parameter">
+                            <div class="name" id="sulphurLabel">Sulphur</div>
+                            <div class="value" id="sulphurValue">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="location-container">
+                    <h3 class="text-lg font-medium text-gray-800 mb-3" id="locationInfoTitle">Location Information</h3>
+                    <div id="locationInfo">
+                        <div class="result-parameter">
+                            <div class="name" id="districtResultLabel">District</div>
+                            <div class="value" id="districtValue">-</div>
+                        </div>
+                        <div class="result-parameter">
+                            <div class="name" id="stateResultLabel">State</div>
+                            <div class="value" id="stateValue">-</div>
+                        </div>
+                    </div>
+
+                    <div class="recommendations">
+                        <h3 id="recommendedCropsTitle">Recommended Crops</h3>
+                        <div id="cropList" class="crop-list">
+                            <!-- Crops will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="recommendations">
+                        <h3 id="fertilizerRecommendationTitle">Fertilizer Recommendations</h3>
+                        <p id="fertilizerRecommendation" class="text-gray-700">-</p>
+                        <div class="mt-3">
+                            <a id="viewFertilizerBtn" href="#" target="_blank" class="btn-primary px-4 py-2">
+                                <i class="fa-solid fa-leaf mr-1"></i> <span id="viewFertilizerText">View Detailed
+                                    Fertilizer Report</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crop varieties section will be inserted here by JavaScript -->
+            <div id="cropVarietiesSection" class="crop-varieties-section">
+                <!-- This will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script src="{{ url_for('static', filename='js/soil_report.js') }}"></script>
+{% endblock %}

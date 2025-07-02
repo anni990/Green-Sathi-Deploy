@@ -1,0 +1,441 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - Green Sathi{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold text-gray-800">Your Profile</h1>
+        <p class="text-gray-600 mt-2">Manage your account and preferences</p>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+        <div class="farmer-gradient text-white p-4">
+            <h2 class="text-lg font-semibold">Personal Information</h2>
+        </div>
+
+        <form method="POST" action="{{ url_for('profile') }}" class="p-6">
+            <div class="mb-6">
+                <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-user text-gray-400"></i>
+                    </div>
+                    <input type="text" id="username" name="username" value="{{ current_user.username }}" required
+                        class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-envelope text-gray-400"></i>
+                    </div>
+                    <input type="email" id="email" value="{{ current_user.email }}" disabled
+                        class="pl-10 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm sm:text-sm h-10">
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Email cannot be changed</p>
+            </div>
+
+            <!-- Farm Location Section -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Farm Location</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="latitude" class="block text-xs text-gray-500 mb-1">Latitude</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-location-dot text-gray-400"></i>
+                            </div>
+                            <input type="number" step="0.000001" id="latitude" name="latitude"
+                                value="{{ current_user.latitude if current_user.latitude else '' }}"
+                                class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10"
+                                placeholder="E.g., 28.6139">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="longitude" class="block text-xs text-gray-500 mb-1">Longitude</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-location-dot text-gray-400"></i>
+                            </div>
+                            <input type="number" step="0.000001" id="longitude" name="longitude"
+                                value="{{ current_user.longitude if current_user.longitude else '' }}"
+                                class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10"
+                                placeholder="E.g., 77.2090">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <button type="button" id="detectLocation"
+                        class="inline-flex items-center text-xs text-farmer-green-600 hover:text-farmer-green-800">
+                        <i class="fa-solid fa-crosshairs mr-1"></i> Detect my current location
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label for="language" class="block text-sm font-medium text-gray-700 mb-1">Preferred Language</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-language text-gray-400"></i>
+                    </div>
+                    <select id="language" name="language"
+                        class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
+                        <option value="hindi" {% if current_user.preferred_language=='hindi' %}selected{% endif %}>हिंदी
+                            (Hindi)</option>
+                        <option value="english" {% if current_user.preferred_language=='english' %}selected{% endif %}>
+                            English</option>
+                        <option value="bhojpuri" {% if current_user.preferred_language=='bhojpuri' %}selected{% endif
+                            %}>भोजपुरी (Bhojpuri)</option>
+                        <option value="bundelkhandi" {% if current_user.preferred_language=='bundelkhandi' %}selected{%
+                            endif %}>बुंदेलखंडी (Bundelkhandi)</option>
+                        <option value="marathi" {% if current_user.preferred_language=='marathi' %}selected{% endif %}>
+                            मराठी (Marathi)</option>
+                        <option value="haryanvi" {% if current_user.preferred_language=='haryanvi' %}selected{% endif
+                            %}>हरियाणवी (Haryanvi)</option>
+
+                        <!-- Newly added languages -->
+                        <option value="bengali" {% if current_user.preferred_language=='bengali' %}selected{% endif %}>
+                            বাংলা (Bengali)</option>
+                        <option value="tamil" {% if current_user.preferred_language=='tamil' %}selected{% endif %}>தமிழ்
+                            (Tamil)</option>
+                        <option value="telugu" {% if current_user.preferred_language=='telugu' %}selected{% endif %}>
+                            తెలుగు (Telugu)</option>
+                        <option value="kannada" {% if current_user.preferred_language=='kannada' %}selected{% endif %}>
+                            ಕನ್ನಡ (Kannada)</option>
+                        <option value="gujarati" {% if current_user.preferred_language=='gujarati' %}selected{% endif
+                            %}>ગુજરાતી (Gujarati)</option>
+                        <option value="urdu" {% if current_user.preferred_language=='urdu' %}selected{% endif %}>اردو
+                            (Urdu)</option>
+                        <option value="malayalam" {% if current_user.preferred_language=='malayalam' %}selected{% endif
+                            %}>മലയാളം (Malayalam)</option>
+                        <option value="punjabi" {% if current_user.preferred_language=='punjabi' %}selected{% endif %}>
+                            ਪੰਜਾਬੀ (Punjabi)</option>
+                    </select>
+
+                </div>
+            </div>
+
+            <div>
+                <button type="submit"
+                    class="w-full sm:w-auto flex justify-center py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-farmer-green-600 hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                    <i class="fa-solid fa-save mr-2"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Account Security Section -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+        <div class="farmer-gradient text-white p-4">
+            <h2 class="text-lg font-semibold">Account Security</h2>
+        </div>
+
+        <div class="p-6">
+            <div class="border-b border-gray-200 pb-6 mb-6">
+                <h3 class="text-base font-medium text-gray-900 mb-3">Change Password</h3>
+                <p class="text-sm text-gray-600 mb-4">It's a good idea to use a strong password that you don't use
+                    elsewhere</p>
+
+                <form id="password-form" class="hidden mb-4">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="current-password" class="block text-sm font-medium text-gray-700 mb-1">Current
+                                Password</label>
+                            <input type="password" id="current-password" name="current_password" required
+                                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
+                        </div>
+                        <div>
+                            <label for="new-password" class="block text-sm font-medium text-gray-700 mb-1">New
+                                Password</label>
+                            <input type="password" id="new-password" name="new_password" required
+                                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
+                        </div>
+                        <div>
+                            <label for="confirm-password" class="block text-sm font-medium text-gray-700 mb-1">Confirm
+                                New Password</label>
+                            <input type="password" id="confirm-password" name="confirm_password" required
+                                class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
+                        </div>
+                        <div class="flex space-x-3">
+                            <button type="submit"
+                                class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-farmer-green-600 hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                                Update Password
+                            </button>
+                            <button type="button" id="cancel-password"
+                                class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <button type="button" id="show-password-form"
+                    class="flex items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-farmer-green-600 hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                    <i class="fa-solid fa-lock mr-2"></i> Change Password
+                </button>
+            </div>
+
+            <div>
+                <h3 class="text-base font-medium text-gray-900 mb-3">Account Activity</h3>
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <div class="flex items-center mb-2">
+                        <i class="fa-solid fa-clock-rotate-left text-gray-400 mr-2"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Last Login</p>
+                            <p class="text-xs text-gray-500">{{ current_user.last_login.strftime('%d %B %Y, %H:%M') if
+                                current_user.last_login else 'Not available' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-calendar-plus text-gray-400 mr-2"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Account Created</p>
+                            <p class="text-xs text-gray-500">{{ current_user.created_at.strftime('%d %B %Y') if
+                                current_user.created_at else 'Not available' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data & Privacy Section -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="farmer-gradient text-white p-4">
+            <h2 class="text-lg font-semibold">Data & Privacy</h2>
+        </div>
+
+        <div class="p-6">
+            <div class="border-b border-gray-200 pb-6 mb-6">
+                <h3 class="text-base font-medium text-gray-900 mb-3">Your Data</h3>
+                <p class="text-sm text-gray-600 mb-4">We store your chat history and uploaded files to provide you with
+                    better service.</p>
+
+                <a href="{{ url_for('history') }}"
+                    class="inline-flex items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                    <i class="fa-solid fa-history mr-2"></i> View Chat History
+                </a>
+            </div>
+
+            <div>
+                <h3 class="text-base font-medium text-gray-900 mb-3">Delete Account</h3>
+                <p class="text-sm text-gray-600 mb-4">Once you delete your account, all your data will be permanently
+                    removed. This action cannot be undone.</p>
+
+                <button type="button" id="delete-account-btn"
+                    class="inline-flex items-center py-2 px-4 border border-red-600 rounded-md shadow-sm text-sm font-medium text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <i class="fa-solid fa-trash-alt mr-2"></i> Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Password form toggle
+        const showPasswordFormBtn = document.getElementById('show-password-form');
+        const passwordForm = document.getElementById('password-form');
+        const cancelPasswordBtn = document.getElementById('cancel-password');
+
+        if (showPasswordFormBtn && passwordForm && cancelPasswordBtn) {
+            showPasswordFormBtn.addEventListener('click', function () {
+                passwordForm.classList.remove('hidden');
+                showPasswordFormBtn.classList.add('hidden');
+            });
+
+            cancelPasswordBtn.addEventListener('click', function () {
+                passwordForm.classList.add('hidden');
+                showPasswordFormBtn.classList.remove('hidden');
+                // Clear form fields
+                passwordForm.reset();
+            });
+
+            // Password form validation and submission
+            passwordForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const currentPassword = document.getElementById('current-password').value;
+                const newPassword = document.getElementById('new-password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    alert('All password fields are required');
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    alert('New passwords do not match!');
+                    return;
+                }
+
+                // Disable submit button to prevent multiple submissions
+                const submitBtn = passwordForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Updating...';
+
+                // Create form data for submission
+                const formData = new FormData();
+                formData.append('current_password', currentPassword);
+                formData.append('new_password', newPassword);
+                formData.append('confirm_password', confirmPassword);
+
+                // Submit password update via AJAX
+                fetch('/api/change_password', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Password updated successfully!');
+                            passwordForm.reset();
+                            passwordForm.classList.add('hidden');
+                            showPasswordFormBtn.classList.remove('hidden');
+                        } else {
+                            alert(data.message || 'Failed to update password');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred. Please try again.');
+                    })
+                    .finally(() => {
+                        // Re-enable submit button
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    });
+            });
+        }
+
+        // Location detection
+        const detectLocationBtn = document.getElementById('detectLocation');
+        const latitudeInput = document.getElementById('latitude');
+        const longitudeInput = document.getElementById('longitude');
+
+        if (detectLocationBtn && latitudeInput && longitudeInput) {
+            detectLocationBtn.addEventListener('click', function () {
+                if (navigator.geolocation) {
+                    detectLocationBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Detecting...';
+                    detectLocationBtn.disabled = true;
+
+                    navigator.geolocation.getCurrentPosition(
+                        function (position) {
+                            latitudeInput.value = position.coords.latitude;
+                            longitudeInput.value = position.coords.longitude;
+
+                            detectLocationBtn.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Location detected';
+                            setTimeout(() => {
+                                detectLocationBtn.innerHTML = '<i class="fa-solid fa-crosshairs mr-1"></i> Detect my current location';
+                                detectLocationBtn.disabled = false;
+                            }, 2000);
+                        },
+                        function (error) {
+                            console.error('Error getting location:', error);
+                            detectLocationBtn.innerHTML = '<i class="fa-solid fa-exclamation-triangle mr-1"></i> Could not detect location';
+                            detectLocationBtn.disabled = false;
+
+                            setTimeout(() => {
+                                detectLocationBtn.innerHTML = '<i class="fa-solid fa-crosshairs mr-1"></i> Detect my current location';
+                            }, 2000);
+                        }
+                    );
+                } else {
+                    alert('Geolocation is not supported by your browser');
+                }
+            });
+        }
+
+        // Delete account confirmation
+        const deleteAccountBtn = document.getElementById('delete-account-btn');
+        if (deleteAccountBtn) {
+            deleteAccountBtn.addEventListener('click', function () {
+                // Create a modal for confirmation
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h3 class="text-lg font-medium text-red-600 mb-4">Delete Account</h3>
+                        <p class="text-gray-700 mb-4">This action cannot be undone. All your data will be permanently deleted.</p>
+                        <p class="text-gray-700 mb-6">To confirm, type "delete" below:</p>
+                        
+                        <form id="delete-account-form">
+                            <input type="text" id="delete-confirmation" class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 sm:text-sm h-10 mb-4" placeholder="Type 'delete' to confirm">
+                            
+                            <div class="flex justify-end space-x-3">
+                                <button type="button" id="cancel-delete" class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" disabled id="confirm-delete-btn">
+                                    Delete Account
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+
+                // Handle confirmation input
+                const confirmInput = document.getElementById('delete-confirmation');
+                const confirmBtn = document.getElementById('confirm-delete-btn');
+
+                confirmInput.addEventListener('input', function () {
+                    confirmBtn.disabled = confirmInput.value.toLowerCase() !== 'delete';
+                });
+
+                // Handle cancel button
+                document.getElementById('cancel-delete').addEventListener('click', function () {
+                    document.body.removeChild(modal);
+                });
+
+                // Handle form submission
+                document.getElementById('delete-account-form').addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    if (confirmInput.value.toLowerCase() !== 'delete') {
+                        return;
+                    }
+
+                    // Disable button and show loading state
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Deleting...';
+
+                    // Create form data for submission
+                    const formData = new FormData();
+                    formData.append('confirmation', confirmInput.value);
+
+                    // Submit delete request
+                    fetch('/api/delete_account', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin'
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Redirect to home page after successful deletion
+                                window.location.href = '/';
+                            } else {
+                                document.body.removeChild(modal);
+                                alert(data.message || 'Failed to delete account');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            document.body.removeChild(modal);
+                            alert('An error occurred. Please try again.');
+                        });
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,124 @@
+/* Voice interaction animations */
+.voice-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: rgba(240, 240, 240, 0.5);
+    margin-top: 15px;
+}
+
+#micButton {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+#micButton:hover {
+    transform: scale(1.05);
+    background-color: #3a7bc8;
+}
+
+#micButton.recording {
+    background-color: #e74c3c;
+    animation: pulse 1.5s infinite;
+}
+
+#stopAudioButton {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+}
+
+#stopAudioButton:hover {
+    transform: scale(1.1);
+    background-color: #c0392b;
+}
+
+#stopAudioButton.hidden {
+    display: none;
+}
+
+.pulse-animation {
+    animation: pulse-once 0.3s;
+}
+
+#statusText {
+    margin-left: 15px;
+    font-size: 14px;
+    color: #555;
+    transition: all 0.3s ease;
+}
+
+.status-listening {
+    color: #e74c3c !important;
+    animation: blink 1.5s infinite;
+}
+
+.status-speaking {
+    color: #4a90e2 !important;
+    animation: wave 2s infinite;
+}
+
+.voice-ripple {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background-color: rgba(231, 76, 60, 0.3);
+    z-index: -1;
+    animation: ripple 1.5s infinite;
+    left: 15px;
+    top: 5px;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes pulse-once {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+@keyframes wave {
+    0% { transform: translateY(0); }
+    25% { transform: translateY(-3px); }
+    50% { transform: translateY(0); }
+    75% { transform: translateY(3px); }
+    100% { transform: translateY(0); }
+}
+
+@keyframes ripple {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.8); opacity: 0; }
+} 

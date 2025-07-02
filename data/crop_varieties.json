@@ -1,0 +1,121 @@
+{
+    "Wheat": {
+        "varieties": [
+            {
+                "name": "HD-2967",
+                "duration": "140-145 days",
+                "yield": "5.0-5.5 tons/ha"
+            },
+            {
+                "name": "PBW-550",
+                "duration": "135-140 days",
+                "yield": "4.5-5.0 tons/ha"
+            }
+        ],
+        "growing_conditions": "Well-drained loamy soil with pH 6.5-7.5, requires moderate water",
+        "fertilizer_requirements": "120-150 kg N, 60-80 kg P, 40-60 kg K per hectare",
+        "common_diseases": "Rust, smut, powdery mildew"
+    },
+    "Rice": {
+        "varieties": [
+            {
+                "name": "MTU-1010",
+                "duration": "115-120 days",
+                "yield": "5.5-6.0 tons/ha"
+            },
+            {
+                "name": "IR-64",
+                "duration": "120-125 days",
+                "yield": "5.0-5.5 tons/ha"
+            }
+        ],
+        "growing_conditions": "Clay loam soil with pH 5.5-7.0, requires standing water",
+        "fertilizer_requirements": "100-120 kg N, 50-60 kg P, 50-60 kg K per hectare",
+        "common_diseases": "Blast, bacterial leaf blight, sheath blight"
+    },
+    "Maize": {
+        "varieties": [
+            {
+                "name": "DHM-117",
+                "duration": "85-90 days",
+                "yield": "5.5-6.5 tons/ha"
+            },
+            {
+                "name": "Vivek Hybrid-9",
+                "duration": "80-85 days",
+                "yield": "5.0-6.0 tons/ha"
+            }
+        ],
+        "growing_conditions": "Well-drained loamy soil with pH 6.0-7.0, moderate water requirement",
+        "fertilizer_requirements": "120-150 kg N, 60-80 kg P, 60-80 kg K per hectare",
+        "common_diseases": "Leaf blight, rust, downy mildew"
+    },
+    "Cotton": {
+        "varieties": [
+            {
+                "name": "Bt Cotton (Bollgard II)",
+                "duration": "160-180 days",
+                "yield": "2.5-3.0 tons/ha"
+            },
+            {
+                "name": "DCH-32",
+                "duration": "170-190 days",
+                "yield": "2.0-2.5 tons/ha"
+            }
+        ],
+        "growing_conditions": "Well-drained black soil with pH 6.0-8.0, deep soils preferred",
+        "fertilizer_requirements": "100-120 kg N, 50-60 kg P, 50-60 kg K per hectare",
+        "common_diseases": "Bollworm, white fly, leaf curl virus"
+    },
+    "Gram": {
+        "varieties": [
+            {
+                "name": "JG-11",
+                "duration": "95-100 days",
+                "yield": "1.8-2.2 tons/ha"
+            },
+            {
+                "name": "JAKI-9218",
+                "duration": "100-105 days",
+                "yield": "2.0-2.5 tons/ha"
+            }
+        ],
+        "growing_conditions": "Well-drained loamy soil with pH 6.0-7.5, low water requirement",
+        "fertilizer_requirements": "20-30 kg N, 40-60 kg P, 20-30 kg K per hectare",
+        "common_diseases": "Wilt, blight, powdery mildew"
+    },
+    "Groundnut": {
+        "varieties": [
+            {
+                "name": "TAG-24",
+                "duration": "100-110 days",
+                "yield": "2.0-2.5 tons/ha"
+            },
+            {
+                "name": "TMV-2",
+                "duration": "105-115 days",
+                "yield": "1.8-2.2 tons/ha"
+            }
+        ],
+        "growing_conditions": "Well-drained sandy loam soil with pH 6.0-6.5, moderate water",
+        "fertilizer_requirements": "20-30 kg N, 40-60 kg P, 30-40 kg K per hectare",
+        "common_diseases": "Leaf spot, rust, collar rot"
+    },
+    "Soybean": {
+        "varieties": [
+            {
+                "name": "JS-335",
+                "duration": "95-100 days",
+                "yield": "2.5-3.0 tons/ha"
+            },
+            {
+                "name": "RVS-2001-4",
+                "duration": "100-105 days",
+                "yield": "2.0-2.5 tons/ha"
+            }
+        ],
+        "growing_conditions": "Well-drained loamy soil with pH 6.5-7.0, moderate water requirement",
+        "fertilizer_requirements": "20-30 kg N, 60-80 kg P, 30-40 kg K per hectare",
+        "common_diseases": "Rust, yellow mosaic, bacterial pustule"
+    }
+}

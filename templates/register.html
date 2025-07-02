@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Green Sathi{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold text-gray-800">Create Your Account</h1>
+        <p class="text-gray-600 mt-2">Join our community of farmers and dealers</p>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="farmer-gradient text-white p-4 text-center">
+            <i class="fa-solid fa-user-plus text-3xl mb-2"></i>
+            <h2 class="text-lg font-semibold">नया खाता बनाएँ (Create Account)</h2>
+        </div>
+        
+        <form method="POST" action="{{ url_for('register') }}" class="p-6">
+            <div class="mb-4">
+                <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-user text-gray-400"></i>
+                    </div>
+                    <input type="text" id="username" name="username" required 
+                           class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10" 
+                           placeholder="Enter your full name">
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-envelope text-gray-400"></i>
+                    </div>
+                    <input type="email" id="email" name="email" required 
+                           class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10" 
+                           placeholder="Enter your email">
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-lock text-gray-400"></i>
+                    </div>
+                    <input type="password" id="password" name="password" required 
+                           class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10" 
+                           placeholder="Create a password">
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="user_role" class="block text-sm font-medium text-gray-700 mb-1">I am a</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-users text-gray-400"></i>
+                    </div>
+                    <select id="user_role" name="user_role" required 
+                            class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
+                        <option value="farmer">Farmer</option>
+                        <option value="dealer">Dealer</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="language" class="block text-sm font-medium text-gray-700 mb-1">Preferred Language</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-language text-gray-400"></i>
+                    </div>
+                    <select id="language" name="language" required 
+                            class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
+                        <option value="hindi">हिंदी (Hindi)</option>
+                        <option value="english">English</option>
+                        <option value="bhojpuri">भोजपुरी (Bhojpuri)</option>
+                        <option value="bundelkhandi">बुन्देलखण्डी (Bundelkhandi)</option>
+                        <option value="marathi">मराठी (Marathi)</option>
+                        <option value="haryanvi">हरियाणवी (Haryanvi)</option>
+                        <option value="bengali">বাংলা (Bengali)</option>
+                        <option value="tamil">தமிழ் (Tamil)</option>
+                        <option value="telugu">తెలుగు (Telugu)</option>
+                        <option value="kannada">ಕನ್ನಡ (Kannada)</option>
+                        <option value="gujarati">ગુજરાતી (Gujarati)</option>
+                        <option value="urdu">اردو (Urdu)</option>
+                        <option value="malayalam">മലയാളം (Malayalam)</option>
+                        <option value="punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-location-dot text-gray-400"></i>
+                        </div>
+                        <input type="number" step="any" id="latitude" name="latitude" 
+                               class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10" 
+                               placeholder="Latitude">
+                    </div>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-location-dot text-gray-400"></i>
+                        </div>
+                        <input type="number" step="any" id="longitude" name="longitude" 
+                               class="pl-10 block w-full border-gray-300 rounded-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10" 
+                               placeholder="Longitude">
+                    </div>
+                </div>
+                <button type="button" onclick="getLocation()" 
+                        class="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-farmer-green-600 hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                    <i class="fa-solid fa-location-crosshairs mr-2"></i>
+                    Get Current Location
+                </button>
+            </div>
+            
+            <div class="mt-6">
+                <button type="submit" 
+                        class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-farmer-green-600 hover:bg-farmer-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-farmer-green-500">
+                    <i class="fa-solid fa-user-plus mr-2"></i>
+                    Create Account
+                </button>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <p class="text-sm text-gray-600">
+                    Already have an account? 
+                    <a href="{{ url_for('login') }}" class="font-medium text-farmer-green-600 hover:text-farmer-green-500">
+                        Sign in
+                    </a>
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            document.getElementById('latitude').value = position.coords.latitude;
+            document.getElementById('longitude').value = position.coords.longitude;
+        }, function(error) {
+            alert('Error getting location: ' + error.message);
+        });
+    } else {
+        alert('Geolocation is not supported by your browser');
+    }
+}
+</script>
+{% endblock %} 

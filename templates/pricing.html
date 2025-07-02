@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Green Sathi - Pricing Plans{% endblock %}
+
+{% block extra_head %}
+<style>
+    .price-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .price-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .plan-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        z-index: 10;
+    }
+    
+    .feature-list li {
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: start;
+    }
+    
+    .feature-list li i {
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+    }
+    
+    .farmer-gradient-text {
+        background: linear-gradient(135deg, #22c55e, #eab308);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-16">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Choose the Right Plan for You</h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            Get access to AI-powered farming advice, soil analysis, and plant disease diagnosis with our flexible pricing options.
+        </p>
+    </div>
+
+    <!-- Pricing Cards -->
+    <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <!-- Free Tier -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden relative price-card border border-gray-200">
+            <div class="plan-badge p-6">
+                <span class="bg-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full">14-days</span>
+            </div>
+            <div class="p-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Free Trial</h2>
+                <p class="text-gray-600 mb-6">Perfect for new users getting started with Green Sathi</p>
+                
+                <div class="flex items-baseline mb-8">
+                    <span class="text-5xl font-bold text-farmer-green-600">₹0</span>
+                    <span class="text-gray-500 ml-2">/month</span>
+                </div>
+                
+                <a href="{{ url_for('register') }}" class="block text-center bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-4 rounded-lg transition-colors w-full">
+                    Get Started
+                </a>
+            </div>
+            
+            <div class="bg-gray-50 p-8">
+                <h3 class="text-lg font-medium text-gray-800 mb-4">Features included:</h3>
+                <ul class="feature-list text-gray-600">
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Basic text chat with AI farming assistant</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Limited voice interactions (5 per day)</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>1 plant disease diagnosis per week</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>1 soil test analysis per month</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Basic crop recommendations</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-xmark text-gray-400 mr-3"></i>
+                        <span class="text-gray-400">Advanced fertilizer recommendations</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-xmark text-gray-400 mr-3"></i>
+                        <span class="text-gray-400">Localized weather predictions</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Pro Tier -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden relative price-card border-2 border-farmer-green-500 transform scale-105 z-10">
+            <div class="plan-badge p-6">
+                <span class="bg-farmer-green-500 text-white text-xs font-bold px-3 py-1  rounded-full">POPULAR</span>
+            </div>
+            
+            <div class="p-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Pro</h2>
+                <p class="text-gray-600 mb-6">For serious farmers looking to optimize their yields</p>
+                
+                <div class="flex items-baseline mb-8">
+                    <span class="text-5xl font-bold text-farmer-green-600">₹299</span>
+                    <span class="text-gray-500 ml-2">/month</span>
+                </div>
+                
+                <a href="#" class="block text-center bg-farmer-green-600 hover:bg-farmer-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors w-full">
+                    Choose Pro
+                </a>
+            </div>
+            
+            <div class="bg-farmer-green-50 p-8">
+                <h3 class="text-lg font-medium text-gray-800 mb-4">Everything in Free, plus:</h3>
+                <ul class="feature-list text-gray-600">
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Unlimited text chat with AI assistant</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Unlimited voice interactions</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>10 plant disease diagnoses per month</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>5 soil test analyses per month</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Advanced crop recommendations with variety details</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Detailed fertilizer recommendations</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Basic seasonal planning assistance</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-xmark text-gray-400 mr-3"></i>
+                        <span class="text-gray-400">Market price predictions</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Ultimate Tier -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden relative price-card border border-gray-200">
+            <div class="p-8">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Ultimate</h2>
+                <p class="text-gray-600 mb-6">For professional farmers and agricultural businesses</p>
+                
+                <div class="flex items-baseline mb-8">
+                    <span class="text-5xl font-bold farmer-gradient-text">₹499</span>
+                    <span class="text-gray-500 ml-2">/month</span>
+                </div>
+                
+                <a href="#" class="block text-center farmer-gradient text-white font-medium py-3 px-4 rounded-lg transition-colors w-full">
+                    Choose Ultimate
+                </a>
+            </div>
+            
+            <div class="bg-gray-50 p-8">
+                <h3 class="text-lg font-medium text-gray-800 mb-4">Everything in Pro, plus:</h3>
+                <ul class="feature-list text-gray-600">
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Priority access to AI farming assistant</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Unlimited plant disease diagnoses</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Unlimited soil test analyses</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Multi-language support in 14 Indian languages</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Customized crop rotation recommendations</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Advanced seasonal planning with weather integration</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Market price predictions and optimal selling time</span>
+                    </li>
+                    <li class="flex">
+                        <i class="fa-solid fa-check text-farmer-green-500 mr-3"></i>
+                        <span>Phone support from agricultural experts</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAQ Section -->
+    <div class="mt-20">
+        <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">Frequently Asked Questions</h2>
+        
+        <div class="max-w-3xl mx-auto divide-y divide-gray-200">
+            <div class="py-6">
+                <h3 class="text-lg font-medium text-gray-900">Can I switch plans later?</h3>
+                <p class="mt-2 text-gray-600">Yes, you can upgrade or downgrade your plan at any time. Changes will take effect from your next billing cycle.</p>
+            </div>
+            
+            <div class="py-6">
+                <h3 class="text-lg font-medium text-gray-900">How are the soil tests analyzed?</h3>
+                <p class="mt-2 text-gray-600">Our system uses advanced AI to extract values from your soil test reports and provides customized recommendations based on your location and crop preferences.</p>
+            </div>
+            
+            <div class="py-6">
+                <h3 class="text-lg font-medium text-gray-900">Is my data secure?</h3>
+                <p class="mt-2 text-gray-600">Yes, we take data security seriously. Your farm data and uploaded images are encrypted and never shared with third parties without your consent.</p>
+            </div>
+            
+            <div class="py-6">
+                <h3 class="text-lg font-medium text-gray-900">Do you offer support in local languages?</h3>
+                <p class="mt-2 text-gray-600">Yes, our Pro and Ultimate plans offer support in multiple Indian languages including Hindi, Bengali, Marathi, Tamil, Telugu, and more.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA Section -->
+    <div class="mt-20 text-center">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">Ready to revolutionize your farming?</h2>
+        <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">Join thousands of farmers who are already using Green Sathi to increase their yields and optimize their farming practices.</p>
+        
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <a href="{{ url_for('register') }}" class="inline-block bg-farmer-green-600 hover:bg-farmer-green-700 text-white font-medium py-3 px-8 rounded-lg transition-colors">
+                Get Started Now
+            </a>
+            <a href="{{ url_for('chat') }}" class="inline-block bg-white border border-farmer-green-600 hover:bg-farmer-green-50 text-farmer-green-600 font-medium py-3 px-8 rounded-lg transition-colors">
+                Try Free Demo
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Optional animations or interactions can be added here
+    });
+</script>
+{% endblock %} 

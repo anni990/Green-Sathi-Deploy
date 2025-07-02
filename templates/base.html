@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Green Sathi - Farmer's AI Assistant{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'farmer-green': {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        'farmer-yellow': {
+                            50: '#fefce8',
+                            100: '#fef9c3',
+                            200: '#fef08a',
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                            700: '#a16207',
+                            800: '#854d0e',
+                            900: '#713f12',
+                        },
+                        'farmer-orange': {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#fb923c',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            800: '#9a3412',
+                            900: '#7c2d12',
+                        },
+                    },
+                    fontFamily: {
+                        'sans': ['Poppins', 'Arial', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-color: #f8fafc;
+        }
+
+        .farmer-gradient {
+            background: linear-gradient(135deg, #22c55e, #eab308);
+        }
+
+        /* Hide the Google Translate logo */
+        .goog-logo-link,
+        .goog-te-gadget span {
+            display: none !important;
+        }
+
+        /* Resize the dropdown */
+        #google_translate_element select {
+            background-color: #f8f9fa;
+            color: #000;
+            border: 1px solid #ccc;
+            padding: 5px;
+            font-size: 14px;
+            border-radius: 4px;
+            width: auto;
+            height: auto;
+        }
+
+        /* Optional: center the element */
+        #google_translate_element {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="font-sans">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-5">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <!-- the logo is of rectangle shape size 600*215 make it fit in the space-->
+                        <a href="{{ url_for('index') }}">
+                            <img src="{{ url_for('static', filename='images/main-logo.jpg') }}" alt="Green Sathi Logo"
+                                class="w-60 h-13 mt-10 border-2 border-farmer-green-300 shadow-md rounded-md">
+                        </a>
+
+                    </div>
+                    <div class="hidden md:ml-6 md:flex md:space-x-8">
+
+                        {% if current_user.is_authenticated %}
+                        {% if current_user.user_role == 'farmer' %}
+                        <a href="{{ url_for('chat') }}"
+                            class="{% if request.path == url_for('chat') %}border-farmer-green-500 text-farmer-green-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fa-solid fa-comment-dots mr-1"></i> Chat
+                        </a>
+                        <a href="{{ url_for('history') }}"
+                            class="{% if request.path == url_for('history') %}border-farmer-green-500 text-farmer-green-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fa-solid fa-clock-rotate-left mr-1"></i> History
+                        </a>
+                        <a href="{{ url_for('my_crops') }}"
+                            class="{% if request.path == url_for('my_crops') %}border-farmer-green-500 text-farmer-green-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fa-solid fa-wheat-awn mr-1"></i> Sell Crops
+                        </a>
+                        <a href="{{ url_for('mandi_dashboard') }}"
+                            class="{% if request.path == url_for('mandi_dashboard') %}border-farmer-green-500 text-farmer-green-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fa-solid fa-chart-line mr-1"></i> Mandi
+                        </a>
+                        {% elif current_user.user_role == 'dealer' %}
+                        <a href="{{ url_for('available_crops') }}"
+                            class="{% if request.path == url_for('available_crops') %}border-farmer-green-500 text-farmer-green-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fa-solid fa-wheat-awn mr-1"></i> Available Crops
+                        </a>
+                        <a href="{{ url_for('my_bids') }}"
+                            class="{% if request.path == url_for('my_bids') %}border-farmer-green-500 text-farmer-green-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fa-solid fa-gavel mr-1"></i> My Bids
+                        </a>
+                        <a href="{{ url_for('mandi_dashboard') }}"
+                            class="{% if request.path == url_for('mandi_dashboard') %}border-farmer-green-500 text-farmer-green-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fa-solid fa-chart-line mr-1"></i> Mandi
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('pricing') }}"
+                            class="{% if request.path == url_for('pricing') %}border-farmer-green-500 text-farmer-green-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fa-solid fa-tag mr-1"></i> Pricing
+                        </a>
+                        <a href="{{ url_for('schemes') }}"
+                            class="{% if request.path == url_for('schemes') %}border-farmer-green-500 text-farmer-green-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fa-solid fa-file-contract mr-1"></i> Schemes
+                        </a>
+                        {% else %}
+                        
+                        <a href="{{ url_for('index') }}"
+                            class="{% if request.path == url_for('index') %}border-farmer-green-500 text-farmer-green-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fa-solid fa-house mr-1"></i> Home
+                        </a>
+                        <a href="{{ url_for('pricing') }}"
+                            class="{% if request.path == url_for('pricing') %}border-farmer-green-500 text-farmer-green-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            <i class="fa-solid fa-tag mr-1"></i> Pricing
+                        </a>
+                        {% endif %}
+
+                    </div>
+                </div>
+
+                <div class="flex items-center">
+                    {% if current_user.is_authenticated %}
+                    <div class="hidden md:flex items-center relative">
+                        <div class="relative">
+                            <button id="user-menu-button"
+                                class="flex items-center bg-farmer-green-100 hover:bg-farmer-green-200 text-farmer-green-800 px-3 py-1.5 rounded-md text-sm font-medium transition-colors focus:outline-none">
+                                <span>{{ current_user.username }}</span>
+                                <i class="fa-solid fa-chevron-down ml-2 text-xs"></i>
+                            </button>
+
+                            <!-- Dropdown menu -->
+                            <div id="user-dropdown"
+                                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden">
+                                <a href="{{ url_for('profile') }}"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fa-solid fa-user mr-2"></i> Profile
+                                </a>
+                                <a href="{{ url_for('logout') }}"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                        <div id="google_translate_element"></div>
+                    </div>
+                    {% else %}
+                    <div class="hidden md:flex items-center space-x-3">
+                        <a href="{{ url_for('login') }}"
+                            class="bg-farmer-green-100 hover:bg-farmer-green-200 text-farmer-green-800 px-3 py-1.5 rounded-md text-sm font-medium transition-colors">Login</a>
+                        <a href="{{ url_for('register') }}"
+                            class="bg-farmer-green-600 hover:bg-farmer-green-700 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors">Register</a>
+                    </div>
+                    <div id="google_translate_element"></div>
+                    {% endif %}
+
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden flex items-center ml-4">
+                        <button type="button"
+                            class="mobile-menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-farmer-green-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-farmer-green-500">
+                            <span class="sr-only">Open main menu</span>
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu, hidden by default -->
+        <div class="mobile-menu hidden md:hidden border-t border-gray-200">
+            <div class="pt-2 pb-3 space-y-1">
+                <a href="{{ url_for('index') }}"
+                    class="{% if request.path == url_for('index') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-house mr-1"></i> Home
+                </a>
+                {% if current_user.is_authenticated %}
+                {% if current_user.user_role == 'farmer' %}
+                <a href="{{ url_for('chat') }}"
+                    class="{% if request.path == url_for('chat') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-comment-dots mr-1"></i> Chat
+                </a>
+                <a href="{{ url_for('history') }}"
+                    class="{% if request.path == url_for('history') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-clock-rotate-left mr-1"></i> History
+                </a>
+                <a href="{{ url_for('mandi_dashboard') }}"
+                    class="{% if request.path == url_for('mandi_dashboard') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-chart-line mr-1"></i> Mandi
+                </a>
+                <a href="{{ url_for('my_crops') }}"
+                    class="{% if request.path == url_for('my_crops') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-wheat-awn mr-1"></i> Sell Crops
+                </a>
+                {% elif current_user.user_role == 'dealer' %}
+                <a href="{{ url_for('available_crops') }}"
+                    class="{% if request.path == url_for('available_crops') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-wheat-awn mr-1"></i> Available Crops
+                </a>
+                <a href="{{ url_for('my_bids') }}"
+                    class="{% if request.path == url_for('my_bids') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-gavel mr-1"></i> My Bids
+                </a>
+                <a href="{{ url_for('mandi_dashboard') }}"
+                    class="{% if request.path == url_for('mandi_dashboard') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-chart-line mr-1"></i> Mandi
+                </a>
+                {% endif %}
+                <a href="{{ url_for('profile') }}"
+                    class="{% if request.path == url_for('profile') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-user mr-1"></i> Profile
+                </a>
+                <a href="{{ url_for('pricing') }}"
+                    class="{% if request.path == url_for('pricing') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-tag mr-1"></i> Pricing
+                </a>
+                <a href="{{ url_for('schemes') }}"
+                    class="{% if request.path == url_for('schemes') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-file-contract mr-1"></i> Schemes
+                </a>
+                <a href="{{ url_for('logout') }}"
+                    class="border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+                </a>
+                {% else %}
+                <a href="{{ url_for('login') }}"
+                    class="{% if request.path == url_for('login') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-right-to-bracket mr-1"></i> Login
+                </a>
+                <a href="{{ url_for('register') }}"
+                    class="{% if request.path == url_for('register') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-user-plus mr-1"></i> Register
+                </a>
+                <a href="{{ url_for('pricing') }}"
+                    class="{% if request.path == url_for('pricing') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    <i class="fa-solid fa-tag mr-1"></i> Pricing
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="flash-messages max-w-6xl mx-auto px-4 mt-4">
+        {% for message in messages %}
+        <div
+            class="bg-farmer-yellow-100 border-l-4 border-farmer-yellow-500 text-farmer-yellow-700 p-4 mb-2 rounded-md">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fa-solid fa-circle-info"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm">{{ message }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-farmer-green-800 text-white mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between">
+                <div class="mb-6 md:mb-0">
+                    <h2 class="text-xl font-semibold flex items-center">
+                        <i class="fa-solid fa-seedling mr-2"></i> Green Sathi
+                    </h2>
+                    <p class="mt-2 text-farmer-green-200 text-sm">
+                        आपका अपना कृषि सहायक - Your trusted farming companion
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-8 sm:grid-cols-3">
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase tracking-wider">Features</h3>
+                        <ul class="mt-4 space-y-2">
+                            <li><a href="#" class="text-farmer-green-200 hover:text-white text-sm">Voice Chat</a></li>
+                            <li><a href="#" class="text-farmer-green-200 hover:text-white text-sm">Disease Detection</a>
+                            </li>
+                            <li><a href="#" class="text-farmer-green-200 hover:text-white text-sm">Soil Analysis</a>
+                            </li>
+                            <li><a href="#" class="text-farmer-green-200 hover:text-white text-sm">Multi-language</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase tracking-wider">Resources</h3>
+                        <ul class="mt-4 space-y-2">
+                            <li><a href="#" class="text-farmer-green-200 hover:text-white text-sm">Crop Guide</a></li>
+                            <li><a href="{{ url_for('weather')}}"
+                                    class="text-farmer-green-200 hover:text-white text-sm">Weather Tips</a></li>
+                            <li><a href="#" class="text-farmer-green-200 hover:text-white text-sm">Govt. Schemes</a>
+                            </li>
+                            <li><a href="#" class="text-farmer-green-200 hover:text-white text-sm">FAQ</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <h3 class="text-sm font-semibold uppercase tracking-wider">Contact</h3>
+                        <ul class="mt-4 space-y-2">
+                            <li class="flex items-center text-farmer-green-200 text-sm">
+                                <i class="fa-solid fa-envelope mr-2"></i>
+                                support@greensathi.com
+                            </li>
+                            <li class="flex items-center text-farmer-green-200 text-sm">
+                                <i class="fa-solid fa-phone mr-2"></i>
+                                +91 1800-XXX-XXXX
+                            </li>
+                        </ul>
+                        <div class="mt-4 flex space-x-3">
+                            <a href="#" class="text-farmer-green-200 hover:text-white">
+                                <i class="fa-brands fa-facebook text-xl"></i>
+                            </a>
+                            <a href="#" class="text-farmer-green-200 hover:text-white">
+                                <i class="fa-brands fa-twitter text-xl"></i>
+                            </a>
+                            <a href="#" class="text-farmer-green-200 hover:text-white">
+                                <i class="fa-brands fa-instagram text-xl"></i>
+                            </a>
+                            <a href="#" class="text-farmer-green-200 hover:text-white">
+                                <i class="fa-brands fa-youtube text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="mt-8 border-t border-farmer-green-700 pt-6 flex flex-col md:flex-row md:items-center md:justify-between">
+                <p class="text-farmer-green-200 text-sm">
+                    &copy; 2025 Green Sathi. All rights reserved.
+                </p>
+                <div class="mt-2 md:mt-0 flex space-x-4">
+                    <a href="#" class="text-farmer-green-200 hover:text-white text-sm">Privacy Policy</a>
+                    <a href="#" class="text-farmer-green-200 hover:text-white text-sm">Terms of Service</a>
+                    <a href="#" class="text-farmer-green-200 hover:text-white text-sm">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Base JavaScript -->
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuButton = document.querySelector('.mobile-menu-button');
+            const mobileMenu = document.querySelector('.mobile-menu');
+
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function () {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+
+            // User dropdown menu toggle
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userDropdown = document.getElementById('user-dropdown');
+
+            if (userMenuButton && userDropdown) {
+                userMenuButton.addEventListener('click', function () {
+                    userDropdown.classList.toggle('hidden');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function (event) {
+                    if (!userMenuButton.contains(event.target) && !userDropdown.contains(event.target)) {
+                        userDropdown.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Auto-hide flash messages after 5 seconds
+            const flashMessages = document.querySelectorAll('.flash-messages > div');
+            flashMessages.forEach(message => {
+                setTimeout(() => {
+                    gsap.to(message, {
+                        opacity: 0,
+                        height: 0,
+                        marginBottom: 0,
+                        padding: 0,
+                        duration: 0.5,
+                        onComplete: () => message.remove()
+                    });
+                }, 5000);
+            });
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+<script type="text/javascript">
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+            {
+                pageLanguage: 'en',
+                includedLanguages: 'en,hi,mr,bn,ta,te,kn,gu,ur,ml,pa',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            },
+            'google_translate_element'
+        );
+    }
+</script>
+
+<script type="text/javascript"
+    src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</html>
