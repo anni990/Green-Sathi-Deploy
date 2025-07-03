@@ -1,6 +1,6 @@
 -- Create the database
-CREATE DATABASE IF NOT EXISTS farmers_chatbot;
-USE farmers_chatbot;
+-- CREATE DATABASE IF NOT EXISTS farmers_chatbot;
+-- USE farmers_chatbot;
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (

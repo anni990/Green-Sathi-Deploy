@@ -2735,7 +2735,4 @@ def delete_crop(crop_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    db.init_app(app)
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True) 
+    app.run(host='0.0.0.0', port=5000)
