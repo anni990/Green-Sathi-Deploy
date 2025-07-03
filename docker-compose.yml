@@ -18,7 +18,7 @@ services:
       MYSQL_PASSWORD: GreenSathi@990
       MYSQL_ROOT_PASSWORD: your_mysql_root_password
     ports:
-      - "3306:3306"
+      - "3306:3307"
     volumes:
       - mysql-data:/var/lib/mysql
 
