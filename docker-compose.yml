@@ -16,7 +16,7 @@ services:
       MYSQL_DATABASE: flaskdb
       MYSQL_USER: GreenSathi
       MYSQL_PASSWORD: GreenSathi@990
-      MYSQL_ROOT_PASSWORD: your_mysql_root_password
+      MYSQL_ROOT_PASSWORD: GreenSathi@990
     ports:
       - "3306:3307"
     volumes:
