@@ -44,10 +44,10 @@ def allowed_file(filename):
 
 # MySQL Database Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}/{}'.format(
-    os.getenv('DB_USER', 'root'),
-    os.getenv('DB_PASSWORD', ''),
-    os.getenv('DB_HOST', 'localhost'),
-    os.getenv('DB_NAME', 'farmers_chatbot')
+    os.getenv('DB_USER', 'GreenSathi'),
+    os.getenv('DB_PASSWORD', 'GreenSathi@990'),
+    os.getenv('DB_HOST', 'db'),
+    os.getenv('DB_NAME', 'flaskdb')
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -59,11 +59,12 @@ os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'soil_reports'), exist_ok=
 # Setup MySQL connection
 def get_db_connection():
     return mysql.connector.connect(
-        host=os.getenv('DB_HOST', 'localhost'),
-        user=os.getenv('DB_USER', 'root'),
-        password=os.getenv('DB_PASSWORD', ''),
-        database=os.getenv('DB_NAME', 'farmers_chatbot')
+        host=os.getenv('DB_HOST', 'db'),  # 'db' is the service name!
+        user=os.getenv('DB_USER', 'GreenSathi'),
+        password=os.getenv('DB_PASSWORD', 'GreenSathi@990'),
+        database=os.getenv('DB_NAME', 'flaskdb')
     )
+
 
 # Login manager setup
 login_manager = LoginManager()

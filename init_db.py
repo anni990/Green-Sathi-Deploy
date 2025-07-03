@@ -8,9 +8,9 @@ load_dotenv()
 
 def connect_to_mysql():
     return mysql.connector.connect(
-        host=os.getenv('DB_HOST', 'localhost'),
-        user=os.getenv('DB_USER', 'root'),
-        password=os.getenv('DB_PASSWORD', ''),
+        host=os.getenv('DB_HOST', 'db'),
+        user=os.getenv('DB_USER', 'GreenSathi'),
+        password=os.getenv('DB_PASSWORD', 'GreenSathi@990'),
     )
 
 def create_database():
@@ -18,7 +18,7 @@ def create_database():
     cursor = conn.cursor()
     
     # Create database if it doesn't exist
-    db_name = os.getenv('DB_NAME', 'farmers_chatbot')
+    db_name = os.getenv('DB_NAME', 'flaskdb')
     cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db_name}")
     
     print(f"Database '{db_name}' created or already exists")
@@ -30,10 +30,10 @@ def create_tables():
     # Create a Flask app for database initialization
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}/{}'.format(
-        os.getenv('DB_USER', 'root'),
-        os.getenv('DB_PASSWORD', ''),
-        os.getenv('DB_HOST', 'localhost'),
-        os.getenv('DB_NAME', 'farmers_chatbot')
+        os.getenv('DB_USER', 'GreenSathi'),
+        os.getenv('DB_PASSWORD', 'GreenSathi@990'),
+        os.getenv('DB_HOST', 'db'),
+        os.getenv('DB_NAME', 'flaskdb')
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
