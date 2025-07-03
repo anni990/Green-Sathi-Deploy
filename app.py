@@ -17,7 +17,8 @@ from models.image_diagnosis import analyze_plant_image
 from models.soil_report import process_soil_report, predict_crop, generate_fertilizer_recommendations, get_crop_varieties, convert_file_to_image
 from models.fetch_weather import get_location_name, get_weather_condition, get_weather_icon, get_current_humidity, get_current_precipitation, get_hourly_weather_codes, format_time, generate_farming_advice
 from models.auction_models import CropForSale, Commodity, District, Bid
-from models.user import User as UserModel  # Add this import at the top with other imports
+from models.user import User
+from models.database import db
 
 # Load environment variables
 load_dotenv()
@@ -65,6 +66,8 @@ def get_db_connection():
         database=os.getenv('DB_NAME', 'flaskdb')
     )
 
+# Initialize
+db.init_app(app)
 
 # Login manager setup
 login_manager = LoginManager()
