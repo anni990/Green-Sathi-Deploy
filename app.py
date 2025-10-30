@@ -17,7 +17,7 @@ from models.image_diagnosis import analyze_plant_image
 from models.soil_report import process_soil_report, predict_crop, generate_fertilizer_recommendations, get_crop_varieties, convert_file_to_image
 from models.fetch_weather import get_location_name, get_weather_condition, get_weather_icon, get_current_humidity, get_current_precipitation, get_hourly_weather_codes, format_time, generate_farming_advice
 from models.auction_models import CropForSale, Commodity, District, Bid
-from models.user import User
+from models.user import User as UserModel  # SQLAlchemy User model
 from models.database import db
 
 # Load environment variables
@@ -44,11 +44,12 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # MySQL Database Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}/{}'.format(
-    os.getenv('DB_USER', 'GreenSathi'),
-    os.getenv('DB_PASSWORD', 'GreenSathi@990'),
-    os.getenv('DB_HOST', 'db'),
-    os.getenv('DB_NAME', 'flaskdb')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}:{}/{}'.format(
+    os.getenv('DB_USER'),
+    os.getenv('DB_PASSWORD'),
+    os.getenv('DB_HOST'),
+    os.getenv('PORT'),
+    os.getenv('DB_NAME')
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -60,10 +61,11 @@ os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'soil_reports'), exist_ok=
 # Setup MySQL connection
 def get_db_connection():
     return mysql.connector.connect(
-        host=os.getenv('DB_HOST', 'db'),  # 'db' is the service name!
-        user=os.getenv('DB_USER', 'GreenSathi'),
-        password=os.getenv('DB_PASSWORD', 'GreenSathi@990'),
-        database=os.getenv('DB_NAME', 'flaskdb')
+        host=os.getenv('DB_HOST'),  # 'db' is the service name!
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD'),
+        database=os.getenv('DB_NAME'),
+        port=os.getenv('PORT')
     )
 
 # Initialize
@@ -85,28 +87,27 @@ class User(UserMixin):
         self.latitude = latitude
         self.longitude = longitude
 
+    def get_id(self):
+        return str(self.id)
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
 @login_manager.user_loader
 def load_user(user_id):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
-    user_data = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    
-    if user_data:
-        return User(
-            id=user_data['id'],
-            username=user_data['username'],
-            email=user_data['email'],
-            preferred_language=user_data['preferred_language'],
-            user_role=user_data.get('user_role', 'farmer'),
-            latitude=user_data.get('latitude'),
-            longitude=user_data.get('longitude')
+    user = UserModel.query.get(int(user_id))
+    if user:
+        # Create a Flask-Login compatible user object
+        login_user_obj = User(
+            id=user.id,
+            username=user.username,
+            email=user.email,
+            preferred_language=user.preferred_language,
+            user_role=user.user_role,
+            latitude=user.latitude,
+            longitude=user.longitude
         )
+        return login_user_obj
     return None
 
 # Routes
@@ -128,26 +129,23 @@ def register():
         longitude = request.form.get('longitude')
         
         # Check if username or email already exists
-        if db.session.query(User).filter_by(username=username).first():
+        if UserModel.query.filter_by(username=username).first():
             flash('Username already exists. Please choose a different one.', 'error')
             return redirect(url_for('register'))
-        if db.session.query(User).filter_by(email=email).first():
+        if UserModel.query.filter_by(email=email).first():
             flash('Email already registered. Please login or use a different email.', 'error')
             return redirect(url_for('register'))
         
         # Create new user
-        new_user = User(
+        new_user = UserModel(
             username=username,
             email=email,
+            password_hash=generate_password_hash(password),
+            user_role=user_role,
             preferred_language=language,
-            user_role=user_role
+            latitude=float(latitude) if latitude else None,
+            longitude=float(longitude) if longitude else None
         )
-        new_user.set_password(password)
-        
-        # Add location if provided
-        if latitude and longitude:
-            new_user.latitude = float(latitude)
-            new_user.longitude = float(longitude)
         
         db.session.add(new_user)
         db.session.commit()
@@ -163,41 +161,29 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-        user_data = cursor.fetchone()
+        user_data = UserModel.query.filter_by(email=email).first()
         
-        if user_data and check_password_hash(user_data['password_hash'], password):
-            # Update last login
-            cursor.execute("UPDATE users SET last_login = %s WHERE id = %s", 
-                          (datetime.now(), user_data['id']))
-            conn.commit()
-            
+        if user_data and check_password_hash(user_data.password_hash, password):
+            # Create Flask-Login compatible user object
             user = User(
-                id=user_data['id'],
-                username=user_data['username'],
-                email=user_data['email'],
-                preferred_language=user_data['preferred_language'],
-                user_role=user_data.get('user_role', 'farmer'),
-                latitude=user_data.get('latitude'),
-                longitude=user_data.get('longitude')
+                id=user_data.id,
+                username=user_data.username,
+                email=user_data.email,
+                preferred_language=user_data.preferred_language,
+                user_role=user_data.user_role,
+                latitude=user_data.latitude,
+                longitude=user_data.longitude
             )
             login_user(user)
-            cursor.close()
-            conn.close()
 
             # Redirect based on user role
-            if user_data.get('user_role') == 'farmer':
+            if user_data.user_role == 'farmer':
                 return redirect(url_for('chat'))
-            elif user_data.get('user_role') == 'dealer':
+            elif user_data.user_role == 'dealer':
                 return redirect(url_for('available_crops'))
             else:
-                flash('Invalid user role')
-                return redirect(url_for('login'))
+                return redirect(url_for('chat'))
         
-        cursor.close()
-        conn.close()
         flash('Invalid email or password')
     
     return render_template('login.html')
@@ -2738,4 +2724,4 @@ def delete_crop(crop_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=8004)
