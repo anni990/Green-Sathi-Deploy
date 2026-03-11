@@ -7,6 +7,9 @@ Pillow==10.0.0
 librosa==0.10.1
 soundfile==0.12.1
 numpy==1.24.3
+# Vertex AI - Google Cloud
+google-cloud-aiplatform==1.71.1
+vertexai==1.71.1
 # Other dependencies
 transformers==4.33.1
 torch==2.0.1

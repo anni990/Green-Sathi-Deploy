@@ -8,9 +8,44 @@ import json
 
 load_dotenv()
 
+# Import Vertex AI modules with error handling
+try:
+    from google.oauth2 import service_account
+    import vertexai
+    from vertexai.generative_models import GenerativeModel, Part, GenerationConfig
+    VERTEX_AI_AVAILABLE = True
+except ImportError as e:
+    print(f"Vertex AI SDK not available: {e}")
+    VERTEX_AI_AVAILABLE = False
+
 # HuggingFace API key
 HUGGINGFACE_API_KEY = os.getenv('HUGGINGFACE_API_KEY')
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
+
+# Configure Vertex AI
+VERTEX_AI_PROJECT_ID = "cool-ocean-486014-h3"
+VERTEX_AI_LOCATION = "us-central1"
+VERTEX_SERVICE_ACCOUNT_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'vertex-gemini-service.json')
+
+# Initialize Vertex AI with service account credentials
+def initialize_vertex_ai():
+    """Initialize Vertex AI with service account credentials"""
+    if not VERTEX_AI_AVAILABLE:
+        return False
+    
+    try:
+        credentials = service_account.Credentials.from_service_account_file(
+            VERTEX_SERVICE_ACCOUNT_FILE
+        )
+        vertexai.init(
+            project=VERTEX_AI_PROJECT_ID,
+            location=VERTEX_AI_LOCATION,
+            credentials=credentials
+        )
+        return True
+    except Exception as e:
+        print(f"Error initializing Vertex AI: {e}")
+        return False
 
 # Language codes for response
 LANGUAGE_CODES = {
@@ -56,12 +91,18 @@ def analyze_plant_image(image_path, language='english'):
         dict: Analysis results including plant type, disease, confidence, and recommendations
     """
     try:
-        # If HuggingFace API key is available, use that
-        if OPENROUTER_API_KEY:
-            return analyze_with_openrouter(image_path, language)
-        else:
-            # Fallback to demo/mock results
-            return analyze_demo(image_path, language)
+        # Try Vertex AI first (primary)
+        try:
+            return analyze_with_vertexai(image_path, language)
+        except Exception as vertex_error:
+            print(f"Vertex AI error: {vertex_error}")
+            
+            # Fallback to OpenRouter if Vertex AI fails
+            if OPENROUTER_API_KEY:
+                return analyze_with_openrouter(image_path, language)
+            else:
+                # Fallback to demo/mock results
+                return analyze_demo(image_path, language)
             
     except Exception as e:
         print(f"Error analyzing plant image: {e}")
@@ -248,6 +289,166 @@ def analyze_with_openrouter(image_path, language='english'):
             "recommendation": error_msg
         }
     
+
+def analyze_with_vertexai(image_path, language='english'):
+    """Use Vertex AI Gemini Vision API to analyze the plant image in the specified language"""
+    
+    try:
+        # Initialize Vertex AI
+        if not initialize_vertex_ai():
+            raise Exception("Failed to initialize Vertex AI")
+        
+        # Prepare language-specific prompts
+        lang_code = LANGUAGE_CODES.get(language, 'en')
+        
+        # Language-specific instructions
+        instructions = {
+            'en': (
+                "You are a plant disease classifier.\n"
+                "Analyze the uploaded image and respond in this JSON format:\n"
+                "{\n"
+                "  \"plant_type\": \"<plant type>\",\n"
+                "  \"disease\": \"<disease name>\",\n"
+                "  \"confidence\": <confidence in decimal>,\n"
+                "  \"recommendation\": \"<brief advice in English>\"\n"
+                "}\n"
+                "If unsure, say plant_type='Unknown', disease='Uncertain', confidence=0.0\n"
+                "Please provide response only in json format without any other text and in english language."
+            ),
+            'hi': (
+                "आप एक पौधा रोग वर्गीकरणकर्ता हैं।\n"
+                "अपलोड की गई छवि का विश्लेषण करें और इस JSON प्रारूप में उत्तर दें:\n"
+                "{\n"
+                "  \"plant_type\": \"<पौधे का प्रकार>\",\n"
+                "  \"disease\": \"<रोग का नाम>\",\n"
+                "  \"confidence\": <दशमलव में विश्वास>,\n"
+                "  \"recommendation\": \"<हिंदी में संक्षिप्त सलाह>\"\n"
+                "}\n"
+                "यदि अनिश्चित हैं, तो plant_type='अज्ञात', disease='अनिश्चित', confidence=0.0 कहें\n"
+                "कृपया केवल json प्रारूप में उत्तर दें, बिना किसी अन्य टेक्स्ट के और हिंदी भाषा में।"
+            ),
+            'bho': (
+                "आप एगो पौधा रोग वर्गीकरणकर्ता हईं।\n"
+                "अपलोड कइल गइल छवि के विश्लेषण करीं आउर ई JSON प्रारूप में जवाब दीं:\n"
+                "{\n"
+                "  \"plant_type\": \"<पौधा के किसिम>\",\n"
+                "  \"disease\": \"<रोग के नाम>\",\n"
+                "  \"confidence\": <दशमलव में विश्वास>,\n"
+                "  \"recommendation\": \"<भोजपुरी में संक्षिप्त सलाह>\"\n"
+                "}\n"
+                "अगर पक्का नइखीं, त plant_type='अज्ञात', disease='अनिश्चित', confidence=0.0 कहीं\n"
+                "कृपया केवल json प्रारूप में उत्तर दीं, बिना कवनो अउर टेक्स्ट के आउर भोजपुरी भाषा में।"
+            ),
+            'mr': (
+                "आपण एक वनस्पती रोग वर्गीकरणकर्ता आहात.\n"
+                "अपलोड केलेल्या प्रतिमेचे विश्लेषण करा आणि या JSON स्वरूपात प्रतिसाद द्या:\n"
+                "{\n"
+                "  \"plant_type\": \"<वनस्पती प्रकार>\",\n"
+                "  \"disease\": \"<रोगाचे नाव>\",\n"
+                "  \"confidence\": <दशांश मध्ये विश्वास>,\n"
+                "  \"recommendation\": \"<मराठीत संक्षिप्त सल्ला>\"\n"
+                "}\n"
+                "अनिश्चित असल्यास, plant_type='अज्ञात', disease='अनिश्चित', confidence=0.0 असे म्हणा\n"
+                "कृपया फक्त json स्वरूपात प्रतिसाद द्या, कोणत्याही इतर मजकुराशिवाय आणि मराठी भाषेत."
+            )
+        }
+        
+        # Default to Hindi for languages without specific translations
+        if lang_code not in instructions:
+            lang_code = 'hi' if lang_code in ['bho', 'mr'] else 'en'
+        
+        instruction_text = instructions.get(lang_code, instructions['en'])
+        
+        # Read and encode the image
+        with open(image_path, "rb") as f:
+            image_data = f.read()
+        
+        # Create image part
+        image_part = Part.from_data(
+            data=image_data,
+            mime_type="image/jpeg"
+        )
+        
+        # Initialize Gemini Vision model
+        model = GenerativeModel("gemini-2.0-flash")
+        
+        # Create generation config
+        generation_config = GenerationConfig(
+            max_output_tokens=1024,
+            temperature=0.4,
+            top_p=0.8,
+        )
+        
+        # Generate response with image and text prompt
+        response = model.generate_content(
+            [instruction_text, image_part],
+            generation_config=generation_config
+        )
+        
+        print("Vertex AI Gemini Response:\n", response.text)
+        
+        # Parse the response
+        try:
+            # Clean the response text
+            message = response.text.replace("```json", "").replace("```", "").replace("\n", "")
+            result = json.loads(message)
+        except json.JSONDecodeError:
+            print("Message is not in JSON format.")
+            result = None
+        
+        # Prepare default messages based on language
+        default_unknown = "Unknown"
+        default_uncertain = "Uncertain"
+        default_recommendation = "The analysis was inconclusive. Please try with a clearer image or consult a local agricultural expert."
+        
+        if language == 'hindi' or language in ['bundelkhandi', 'haryanvi']:
+            default_unknown = "अज्ञात"
+            default_uncertain = "अनिश्चित"
+            default_recommendation = "विश्लेषण अनिर्णायक था। कृपया एक स्पष्ट छवि के साथ पुनः प्रयास करें या स्थानीय कृषि विशेषज्ञ से परामर्श करें।"
+        elif language == 'bhojpuri':
+            default_unknown = "अज्ञात"
+            default_uncertain = "अनिश्चित"
+            default_recommendation = "विश्लेषण अनिर्णायक रहल। कृपया एगो साफ छवि के साथे फेर से कोशिश करीं या स्थानीय कृषि विशेषज्ञ से सलाह लीं।"
+        elif language == 'marathi':
+            default_unknown = "अज्ञात"
+            default_uncertain = "अनिश्चित"
+            default_recommendation = "विश्लेषण अनिश्चित होते. कृपया अधिक स्पष्ट प्रतिमेसह पुन्हा प्रयत्न करा किंवा स्थानिक कृषी तज्ञांचा सल्ला घ्या."
+        
+        if result:
+            return {
+                "plant_type": result.get("plant_type", default_unknown),
+                "disease": result.get("disease", default_uncertain),
+                "confidence": result.get("confidence", 0.0),
+                "recommendation": result.get("recommendation", default_recommendation)
+            }
+        else:
+            return {
+                "plant_type": default_unknown,
+                "disease": default_uncertain,
+                "confidence": 0.0,
+                "recommendation": default_recommendation
+            }
+    
+    except Exception as e:
+        print(f"Vertex AI error: {e}")
+        
+        # Language-specific error messages
+        if language == 'hindi' or language in ['bundelkhandi', 'haryanvi']:
+            error_msg = "विश्लेषण अनिर्णायक था। कृपया एक स्पष्ट छवि के साथ पुनः प्रयास करें या स्थानीय कृषि विशेषज्ञ से परामर्श करें।"
+        elif language == 'bhojpuri':
+            error_msg = "विश्लेषण अनिर्णायक रहल। कृपया एगो साफ छवि के साथे फेर से कोशिश करीं या स्थानीय कृषि विशेषज्ञ से सलाह लीं।"
+        elif language == 'marathi':
+            error_msg = "विश्लेषण अनिश्चित होते. कृपया अधिक स्पष्ट प्रतिमेसह पुन्हा प्रयत्न करा किंवा स्थानिक कृषी तज्ञांचा सल्ला घ्या."
+        else:
+            error_msg = "The analysis was inconclusive. Please try with a clearer image or consult a local agricultural expert."
+        
+        return {
+            "plant_type": "Unknown" if language == 'english' else "अज्ञात",
+            "disease": "Uncertain" if language == 'english' else "अनिश्चित",
+            "confidence": 0.0,
+            "recommendation": error_msg
+        }
+
 
 def analyze_demo(image_path, language='english'):
     """Provide a demo/mock analysis when no API key is available"""

@@ -53,6 +53,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}:{}/{}'.format(
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Initialize
+db.init_app(app)
+
 # Ensure upload directories exist
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'voice'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'images'), exist_ok=True)
@@ -68,8 +71,6 @@ def get_db_connection():
         port=os.getenv('PORT')
     )
 
-# Initialize
-db.init_app(app)
 
 # Login manager setup
 login_manager = LoginManager()
@@ -220,7 +221,7 @@ def chat():
             
             # Security check: Make sure the user can only access their own chats
             if current_chat and current_user.is_authenticated and current_chat.user_id != user_id:
-                # If this chat belongs to another user, redirect to a new chat
+                # If this chat belongs to another user, redirect to chat without chat_id
                 return redirect(url_for('chat', language=language))
                 
             if current_chat:
@@ -230,37 +231,8 @@ def chat():
                     db.session.commit()
                     
                 messages = ChatMessage.query.filter_by(chat_id=chat_id).order_by(ChatMessage.timestamp).all()
-        else:
-            # Create a new chat session if none is specified
-            try:
-                db.session.rollback()  # Roll back any existing transaction
-                new_chat = ChatSession(language=language, user_id=user_id)
-                db.session.add(new_chat)
-                db.session.commit()
-                current_chat = new_chat
-                chat_id = new_chat.id
-                
-                # Add a welcome message using the get_welcome_message function
-                welcome_text = get_welcome_message(language)
-                
-                # Get or create system user for bot messages
-                system_user_id = get_or_create_system_user()
-                
-                bot_message = ChatMessage(
-                    chat_id=chat_id,
-                    text=welcome_text,
-                    sender='bot',
-                    user_id=system_user_id  # Use system user instead of NULL
-                )
-                db.session.add(bot_message)
-                db.session.commit()
-                
-                # Get messages for the new chat
-                messages = ChatMessage.query.filter_by(chat_id=chat_id).order_by(ChatMessage.timestamp).all()
-            except Exception as e:
-                db.session.rollback()
-                print(f"Error creating new chat: {str(e)}")
-                raise
+        
+        # Don't create a new chat automatically - let the user click "New Chat" button
         
         return render_template('chat.html',
                             chat_history=chat_history,
@@ -288,6 +260,21 @@ def create_chat():
     # Create new chat with UUID-style ID
     new_chat = ChatSession(language=language, user_id=user_id)
     db.session.add(new_chat)
+    db.session.commit()
+    
+    # Add welcome message to the new chat
+    welcome_text = get_welcome_message(language)
+    
+    # Get or create system user for bot messages
+    system_user_id = get_or_create_system_user()
+    
+    bot_message = ChatMessage(
+        chat_id=new_chat.id,
+        text=welcome_text,
+        sender='bot',
+        user_id=system_user_id
+    )
+    db.session.add(bot_message)
     db.session.commit()
     
     return jsonify({
@@ -1014,143 +1001,13 @@ def analyze_soil_report():
         return jsonify({'error': result}), 400
     
     # Now result contains the image as a numpy array
-    # Process soil report using OpenRouter's Gemini Pro Vision model
+    # Process soil report using Vertex AI Gemini Vision model
     try:
-        import requests
-        import base64
-        from PIL import Image as PILImage
-        import io
         import numpy as np
+        from models.soil_report import analyze_soil_report_with_vertexai
         
-        # Get OpenRouter API key
-        openrouter_api_key = os.getenv('OPENROUTER_API_KEY')
-        if not openrouter_api_key:
-            return jsonify({'error': 'OpenRouter API key not configured'}), 500
-        
-        # Convert numpy array to PIL Image
-        image = PILImage.fromarray(result)
-        
-        # Resize image if it's too large (max dimension 768px for better compatibility)
-        max_size = 768
-        if max(image.size) > max_size:
-            ratio = max_size / max(image.size)
-            new_size = (int(image.size[0] * ratio), int(image.size[1] * ratio))
-            image = image.resize(new_size, PILImage.LANCZOS)
-        
-        # Convert image to base64
-        buffered = io.BytesIO()
-        image.save(buffered, format="JPEG", quality=90)
-        img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
-        
-        # Prepare the OpenRouter API request
-        headers = {
-            "Authorization": f"Bearer {openrouter_api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        # Prepare the prompt
-        prompt = """
-        You're a soil analysis expert. Extract all available soil parameters from this soil report image.
-        I need exact numeric values for:
-        - pH
-        - EC (Electrical Conductivity)
-        - Organic Carbon
-        - Nitrogen
-        - Phosphorus
-        - Potassium
-        - Zinc
-        - Copper
-        - Iron
-        - Manganese
-        - Sulphur
-        
-        ALSO, look for and extract location information ONLY if the words "District" and "State" are EXPLICITLY mentioned in the report:
-        - District (only if labeled as "District" or "DISTRICT" in the report)
-        - State (only if labeled as "State" or "STATE" in the report)
-
-        Return only a JSON object with these parameters as keys and their values. 
-        For soil parameters, use numeric values without units. 
-        For district and state, use string values with quotes.
-
-        IMPORTANT: If a parameter is not visible or clearly mentioned in the report, set its value to null (not 0 or any default value).
-        
-        Example response format:
-        {
-            "ph": 7.2,
-            "ec": 0.45,
-            "organic_carbon": 0.65,
-            "nitrogen": 250,
-            "phosphorus": 28.5,
-            "potassium": 156,
-            "zinc": 0.8,
-            "copper": 0.6,
-            "iron": 4.5,
-            "manganese": 2.2,
-            "sulphur": 20,
-        }
-        
-        If no district or state is explicitly mentioned, return null for those fields like:
-        "district": null,
-        "state": null
-        """
-        
-        # Create the request payload
-        payload = {
-            "model": "qwen/qwen2.5-vl-3b-instruct:free",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt},
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_str}"}}
-                    ]
-                }
-            ]
-        }
-        
-        # Send the request to OpenRouter
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers=headers,
-            json=payload
-        )
-        
-        if response.status_code != 200:
-            raise Exception(f"OpenRouter API error: {response.text}")
-        
-        # Extract the text response
-        response_data = response.json()
-        print(response_data)
-        response_text = response_data["choices"][0]["message"]["content"]
-        print(response_text)
-        # Extract the JSON part from the response
-        import re
-        
-        json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
-        if json_match:
-            soil_params_json = json_match.group(1)
-        else:
-            json_match = re.search(r'{.*}', response_text, re.DOTALL)
-            if json_match:
-                soil_params_json = json_match.group(0)
-            else:
-                soil_params_json = '{}'
-        
-        # Parse the JSON
-        try:
-            soil_params = json.loads(soil_params_json)
-            
-            # Ensure district and state are proper values, not literal strings "null"
-            if soil_params.get('district') == "null" or soil_params.get('district') == "None":
-                soil_params['district'] = None
-                
-            if soil_params.get('state') == "null" or soil_params.get('state') == "None":
-                soil_params['state'] = None
-                
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON: {e}")
-            print(f"Attempted to parse: {soil_params_json}")
-            soil_params = {}
+        # Use Vertex AI to analyze the soil report
+        soil_params = analyze_soil_report_with_vertexai(result)
         
         # Extract district and state from soil_params if available, otherwise use form inputs
         extracted_district = soil_params.get('district')
@@ -2724,4 +2581,4 @@ def delete_crop(crop_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8004)
+    app.run(host='0.0.0.0', port=8004, debug=True)

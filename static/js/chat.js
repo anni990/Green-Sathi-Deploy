@@ -38,7 +38,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // Farmer Character instance
     let farmerCharacter = null;
 
+    // Check if chat is active
+    function isChatActive() {
+        const chatInputContainer = document.querySelector('.chat-input-container');
+        const chatId = chatInputContainer ? chatInputContainer.getAttribute('data-chat-id') : null;
+        return chatId && chatId.trim() !== '';
+    }
 
+    // Show alert for no active chat
+    function showNoChatAlert() {
+        const language = languageSelector.value;
+        const alertMessage = language === 'english'
+            ? "Please start a new chat first to use this feature."
+            : "कृपया इस सुविधा का उपयोग करने के लिए पहले एक नया चैट शुरू करें।";
+        alert(alertMessage);
+    }
 
     // Animation for the character
     function animateCharacter() {
@@ -202,6 +216,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Tab switching
     function switchTab(tab) {
+        // Check if chat is active
+        if (!isChatActive()) {
+            showNoChatAlert();
+            return;
+        }
+
         // Remove active class from all tabs
         [tabText, tabVoice, tabImage].forEach(t => {
             t.classList.remove('active');
@@ -441,6 +461,12 @@ document.addEventListener('DOMContentLoaded', function () {
     textForm.addEventListener('submit', function (e) {
         e.preventDefault(); // Prevent the form from submitting normally
 
+        // Check if chat is active
+        if (!isChatActive()) {
+            showNoChatAlert();
+            return;
+        }
+
         const message = messageInput.value.trim();
         if (message) {
             handleUserMessage(message);
@@ -448,8 +474,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Prevent typing in message input when no active chat
+    messageInput.addEventListener('focus', function() {
+        if (!isChatActive()) {
+            this.blur();
+            showNoChatAlert();
+        }
+    });
+
     // Update event listeners
     newChatButton.addEventListener('click', createNewChat);
+
+    // Event listener for empty state "Start New Chat" button
+    const startNewChatButton = document.getElementById('startNewChatButton');
+    if (startNewChatButton) {
+        startNewChatButton.addEventListener('click', createNewChat);
+    }
 
     // Load chat history on page load
     loadChatHistory();
@@ -487,6 +527,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Start recording
     function startRecording() {
+        // Check if chat is active
+        if (!isChatActive()) {
+            showNoChatAlert();
+            return;
+        }
+
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
                 mediaRecorder = new MediaRecorder(stream);
@@ -619,6 +665,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Image form submission
     imageForm.addEventListener('submit', function (e) {
         e.preventDefault();
+
+        // Check if chat is active
+        if (!isChatActive()) {
+            showNoChatAlert();
+            return;
+        }
 
         const imageFile = document.getElementById('imageInput').files[0];
         if (!imageFile) {

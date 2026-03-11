@@ -10,6 +10,16 @@ from .database import db
 
 load_dotenv()
 
+# Import Vertex AI modules with error handling
+try:
+    from google.oauth2 import service_account
+    import vertexai
+    from vertexai.generative_models import GenerativeModel, Part, GenerationConfig
+    VERTEX_AI_AVAILABLE = True
+except ImportError as e:
+    print(f"Vertex AI SDK not available: {e}")
+    VERTEX_AI_AVAILABLE = False
+
 class ChatSession(db.Model):
     __tablename__ = 'chat_sessions'
     
@@ -74,6 +84,31 @@ class SoilReport(db.Model):
 # Configure API keys
 HUGGINGFACE_API_KEY = os.getenv('HUGGINGFACE_API_KEY')
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
+
+# Configure Vertex AI
+VERTEX_AI_PROJECT_ID = "cool-ocean-486014-h3"
+VERTEX_AI_LOCATION = "us-central1"
+VERTEX_SERVICE_ACCOUNT_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'vertex-gemini-service.json')
+
+# Initialize Vertex AI with service account credentials
+def initialize_vertex_ai():
+    """Initialize Vertex AI with service account credentials"""
+    if not VERTEX_AI_AVAILABLE:
+        return False
+    
+    try:
+        credentials = service_account.Credentials.from_service_account_file(
+            VERTEX_SERVICE_ACCOUNT_FILE
+        )
+        vertexai.init(
+            project=VERTEX_AI_PROJECT_ID,
+            location=VERTEX_AI_LOCATION,
+            credentials=credentials
+        )
+        return True
+    except Exception as e:
+        print(f"Error initializing Vertex AI: {e}")
+        return False
 
 # Dictionary of language codes
 LANGUAGE_CODES = {
@@ -177,42 +212,50 @@ def process_text_query(query, language='hindi'):
         # Clean user input
         clean_query = preprocess_text(query)
         
-        # If we're using OpenRouter
-        if OPENROUTER_API_KEY:
-            try:
-                response = process_with_openrouter(clean_query, language)
-                print(response)
-                return preprocess_text(response)
-            except Exception as api_error:
-                print(f"OpenRouter API error: {api_error}")
-                # Try with HuggingFace if OpenRouter fails
-                if HUGGINGFACE_API_KEY:
-                    try:
-                        response = process_with_huggingface(clean_query, language)
-                        return preprocess_text(response)
-                    except Exception as hf_error:
-                        print(f"HuggingFace API error: {hf_error}")
-                        # Fall back to demo response if both APIs fail
+        # Try Vertex AI first (primary)
+        try:
+            response = process_with_vertexai(clean_query, language)
+            print(response)
+            return preprocess_text(response)
+        except Exception as vertex_error:
+            print(f"Vertex AI error: {vertex_error}")
+            
+            # Fallback to OpenRouter if Vertex AI fails
+            if OPENROUTER_API_KEY:
+                try:
+                    response = process_with_openrouter(clean_query, language)
+                    print(response)
+                    return preprocess_text(response)
+                except Exception as api_error:
+                    print(f"OpenRouter API error: {api_error}")
+                    # Try with HuggingFace if OpenRouter fails
+                    if HUGGINGFACE_API_KEY:
+                        try:
+                            response = process_with_huggingface(clean_query, language)
+                            return preprocess_text(response)
+                        except Exception as hf_error:
+                            print(f"HuggingFace API error: {hf_error}")
+                            # Fall back to demo response if all APIs fail
+                            response = demo_response(clean_query, language)
+                            return preprocess_text(response)
+                    else:
+                        # Fall back to demo response if HuggingFace not available
                         response = demo_response(clean_query, language)
                         return preprocess_text(response)
-                else:
-                    # Fall back to demo response if HuggingFace not available
+            # Fallback to HuggingFace if OpenRouter not available
+            elif HUGGINGFACE_API_KEY:
+                try:
+                    response = process_with_huggingface(clean_query, language)
+                    return preprocess_text(response)
+                except Exception as hf_error:
+                    print(f"HuggingFace API error: {hf_error}")
+                    # Fall back to demo response if HuggingFace fails
                     response = demo_response(clean_query, language)
                     return preprocess_text(response)
-        # Fallback to HuggingFace
-        elif HUGGINGFACE_API_KEY:
-            try:
-                response = process_with_huggingface(clean_query, language)
-                return preprocess_text(response)
-            except Exception as hf_error:
-                print(f"HuggingFace API error: {hf_error}")
-                # Fall back to demo response if HuggingFace fails
+            # Local fallback for demo
+            else:
                 response = demo_response(clean_query, language)
                 return preprocess_text(response)
-        # Local fallback for demo
-        else:
-            response = demo_response(clean_query, language)
-            return preprocess_text(response)
     
     except Exception as e:
         print(f"Critical error processing text query: {e}")
@@ -296,6 +339,53 @@ def process_with_openrouter(query, language):
     
     # If we've exhausted all models, raise the last error
     raise Exception(f"All OpenRouter models failed. Last error: {last_error}")
+
+def process_with_vertexai(query, language):
+    """Use Vertex AI Gemini API to process the query"""
+    
+    try:
+        # Initialize Vertex AI
+        if not initialize_vertex_ai():
+            raise Exception("Failed to initialize Vertex AI")
+        
+        # Get language display name for clearer instructions
+        language_display = LANGUAGE_NAMES.get(language, language)
+        
+        # Define a system prompt based on language
+        if language == 'english':
+            system_instruction = "You are an AI agricultural assistant named 'AI ग्रीन साथी' helping farmers. Answer questions concisely and clearly in English only. Provide practical advice for farming problems."
+        else:  # Other Indian languages
+            system_instruction = f"आप 'AI ग्रीन साथी' नाम के एक AI कृषि सहायक हैं जो किसानों की मदद कर रहे हैं। प्रश्नों का उत्तर केवल {language_display} भाषा में संक्षेप में और स्पष्ट रूप से दें। खेती की समस्याओं के लिए व्यावहारिक सलाह प्रदान करें। अपने उत्तर में अंग्रेजी का प्रयोग न करें।"
+        
+        # Initialize Gemini model with system instruction
+        model = GenerativeModel(
+            "gemini-2.0-flash",
+            system_instruction=[system_instruction]
+        )
+        
+        # Create generation config
+        generation_config = GenerationConfig(
+            max_output_tokens=500,
+            temperature=0.7,
+            top_p=0.9,
+        )
+        
+        # Generate response
+        response = model.generate_content(
+            query,
+            generation_config=generation_config
+        )
+        
+        # Extract and return the text response
+        if response and response.text:
+            print(f"Successfully used Vertex AI Gemini model")
+            return response.text
+        else:
+            raise Exception("No response from Vertex AI")
+            
+    except Exception as e:
+        print(f"Vertex AI error: {e}")
+        raise Exception(f"Vertex AI processing failed: {str(e)}")
 
 def process_with_huggingface(query, language):
     """Use HuggingFace API to process the query"""

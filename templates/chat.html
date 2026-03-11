@@ -400,76 +400,56 @@
 
                 <!-- Chat Messages -->
                 <div id="chatMessages" class="chat-container p-4 overflow-y-auto">
-                    <!-- Welcome Message (show only for new chats) -->
-                    {% if messages %}
-                        {% for message in messages %}
-                            {% if message.sender == 'user' %}
-                            <!-- User Message -->
-                            <div class="flex justify-end mb-4">
-                                <div class="message-bubble user-message p-3">
-                                    {% if message.input_type == 'image' or '<img' in message.text %}
-                                        <div class="formatted-message">{{ message.text|safe }}</div>
-                                    {% else %}
-                                        <p>{{ message.text }}</p>
-                                    {% endif %}
-                                    <p class="text-xs text-gray-500 text-right mt-1">
-                                        {{ message.timestamp.strftime('%H:%M') }}
-                                        {% if message.input_type != 'text' %}
-                                        • {{ message.input_type }}
+                    {% if current_chat_id %}
+                        <!-- Show messages if a chat is active -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                {% if message.sender == 'user' %}
+                                <!-- User Message -->
+                                <div class="flex justify-end mb-4">
+                                    <div class="message-bubble user-message p-3">
+                                        {% if message.input_type == 'image' or '<img' in message.text %}
+                                            <div class="formatted-message">{{ message.text|safe }}</div>
+                                        {% else %}
+                                            <p>{{ message.text }}</p>
                                         {% endif %}
-                                    </p>
+                                        <p class="text-xs text-gray-500 text-right mt-1">
+                                            {{ message.timestamp.strftime('%H:%M') }}
+                                            {% if message.input_type != 'text' %}
+                                            • {{ message.input_type }}
+                                            {% endif %}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                            {% else %}
-                            <!-- Bot Response -->
-                            <div class="flex mb-4">
-                                <div class="message-bubble bot-message p-3">
-                                    <div class="formatted-message">{{ message.text|safe }}</div>
-                                    <p class="text-xs text-gray-500 mt-1">{{ message.timestamp.strftime('%H:%M') }}</p>
-                                </div>
-                            </div>
-                            {% endif %}
-                        {% endfor %}
-                    {% else %}
-                    <!-- Default welcome message for new chats -->
-                    <div class="flex mb-4">
-                        <div class="message-bubble bot-message p-3">
-                            <div class="formatted-message">
-                                {% if language == 'english' %}
-                                    Hello! I'm your Green Sathi. How can I help you with your farming questions today?
-                                {% elif language == 'hindi' %}
-                                    नमस्ते! मैं आपका ग्रीन साथी हूँ। आज मैं आपकी खेती संबंधित प्रश्नों में कैसे मदद कर सकता हूँ?
-                                {% elif language == 'bengali' %}
-                                    নমস্কার! আমি আপনার গ্রীন সাথী। আজ আমি আপনার কৃষি সংক্রান্ত প্রশ্নগুলিতে কীভাবে সাহায্য করতে পারি?
-                                {% elif language == 'marathi' %}
-                                    नमस्कार! मी तुमचा ग्रीन साथी आहे. आज मी तुम्हाला तुमच्या शेती संबंधित प्रश्नांमध्ये कशी मदत करू शकतो?
-                                {% elif language == 'tamil' %}
-                                    வணக்கம்! நான் உங்கள் கிரீன் சாதி. இன்று உங்கள் விவசாய கேள்விகளில் நான் எப்படி உதவ முடியும்?
-                                {% elif language == 'telugu' %}
-                                    నమస్కారం! నేను మీ గ్రీన్ సాథి. నేడు మీ వ్యవసాయ ప్రశ్నలలో నేను మీకు ఎలా సహాయం చేయగలను?
-                                {% elif language == 'kannada' %}
-                                    ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ಗ್ರೀನ್ ಸಾಥಿ. ಇಂದು ನಿಮ್ಮ ಕೃಷಿ ಪ್ರಶ್ನೆಗಳಲ್ಲಿ ನಾನು ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?
-                                {% elif language == 'gujarati' %}
-                                    નમસ્તે! હું તમારો ગ્રીન સાથી છું. આજે હું તમારા ખેતી સંબંધિત પ્રશ્નોમાં કેવી રીતે મદદ કરી શકું છું?
-                                {% elif language == 'urdu' %}
-                                    سلام! میں آپ کا گرین ساتھی ہوں۔ آج میں آپ کے زرعی سوالات میں کیسے مدد کر سکتا ہوں؟
-                                {% elif language == 'malayalam' %}
-                                    നമസ്കാരം! ഞാൻ നിങ്ങളുടെ ഗ്രീൻ സാഥി ആണ്. ഇന്ന് നിങ്ങളുടെ കാർഷിക ചോദ്യങ്ങളിൽ എനിക്ക് എങ്ങനെ സഹായിക്കാൻ കഴിയും?
-                                {% elif language == 'punjabi' %}
-                                    ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡਾ ਗ੍ਰੀਨ ਸਾਥੀ ਹਾਂ। ਅੱਜ ਮੈਂ ਤੁਹਾਡੇ ਖੇਤੀਬਾੜੀ ਸੰਬੰਧੀ ਸਵਾਲਾਂ ਵਿੱਚ ਤੁਹਾਡੀ ਕਿਵੇਂ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ?
-                                {% elif language == 'bhojpuri' %}
-                                    नमस्कार! हम आपके ग्रीन साथी हईं। आज हम आपके खेती से जुड़ल सवालन में केही मदद कर सकत बानी?
-                                {% elif language == 'bundelkhandi' %}
-                                    नमस्कार! हम आपके ग्रीन साथी हैं। आज हम आपके खेती से जुड़े सवालों में कैसे मदद कर सकते हैं?
-                                {% elif language == 'haryanvi' %}
-                                    नमस्कार! मैं थारा ग्रीन साथी हूँ। आज मैं थारे खेती से जुड़े सवालां में किस तरह मदद कर सकूं?
                                 {% else %}
-                                    नमस्ते! मैं आपका ग्रीन साथी हूँ। आज मैं आपकी खेती संबंधित प्रश्नों में कैसे मदद कर सकता हूँ?
+                                <!-- Bot Response -->
+                                <div class="flex mb-4">
+                                    <div class="message-bubble bot-message p-3">
+                                        <div class="formatted-message">{{ message.text|safe }}</div>
+                                        <p class="text-xs text-gray-500 mt-1">{{ message.timestamp.strftime('%H:%M') }}</p>
+                                    </div>
+                                </div>
                                 {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <!-- Empty state - No chat selected -->
+                        <div class="flex items-center justify-center h-full">
+                            <div class="text-center">
+                                <div class="mb-6">
+                                    <i class="fa-solid fa-comments text-farmer-green-500 text-6xl mb-4"></i>
+                                </div>
+                                <h3 class="text-2xl font-semibold text-gray-800 mb-2">
+                                    Welcome to Green Sathi
+                                </h3>
+                                <p class="text-gray-600 mb-6">
+                                    Start a new conversation with your AI farming assistant
+                                </p>
+                                <button id="startNewChatButton" class="bg-farmer-green-600 hover:bg-farmer-green-700 text-white px-6 py-3 rounded-lg shadow-lg transition-all transform hover:scale-105">
+                                    <i class="fa-solid fa-plus mr-2"></i> Start New Chat
+                                </button>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Green Sathi</p>
                         </div>
-                    </div>
                     {% endif %}
 
                     <!-- Typing Indicator (Hidden by default) -->
@@ -483,22 +463,25 @@
                 </div>
 
                 <!-- Input Area -->
-                <div class="chat-input-container p-3">
+                <div class="chat-input-container p-3" data-chat-id="{{ current_chat_id or '' }}">
                     <!-- Input Type Tabs -->
                     <div class="flex border-b border-gray-200 mb-3">
                         <button type="button" id="tabText"
-                            class="tab-button active flex items-center py-2 px-4 border-b-2 text-sm font-medium">
+                            class="tab-button active flex items-center py-2 px-4 border-b-2 text-sm font-medium {% if not current_chat_id %}opacity-50 cursor-not-allowed{% endif %}"
+                            {% if not current_chat_id %}disabled{% endif %}>
                             <i class="fa-solid fa-comment mr-2"></i> Text
                         </button>
                         <button type="button" id="tabVoice"
-                            class="tab-button flex items-center py-2 px-4 border-b-2 border-transparent text-sm font-medium text-gray-500">
+                            class="tab-button flex items-center py-2 px-4 border-b-2 border-transparent text-sm font-medium text-gray-500 {% if not current_chat_id %}opacity-50 cursor-not-allowed{% endif %}"
+                            {% if not current_chat_id %}disabled{% endif %}>
                             <i class="fa-solid fa-microphone mr-2"></i> Voice
                         </button>
                         <button type="button" id="tabImage"
-                            class="tab-button flex items-center py-2 px-4 border-b-2 border-transparent text-sm font-medium text-gray-500">
+                            class="tab-button flex items-center py-2 px-4 border-b-2 border-transparent text-sm font-medium text-gray-500 {% if not current_chat_id %}opacity-50 cursor-not-allowed{% endif %}"
+                            {% if not current_chat_id %}disabled{% endif %}>
                             <i class="fa-solid fa-camera mr-2"></i> Image
                         </button>
-                        <a href="{{ url_for('soil_report') }}" 
+                        <a href="{{ url_for('soil_report') }}" target="_blank"
                             class="tab-button flex items-center py-2 px-4 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">
                             <i class="fa-solid fa-file-invoice mr-2"></i> Soil Report Analysis
                         </a>
@@ -511,19 +494,15 @@
                     <!-- Text Input (Default) -->
                     <div id="inputText" class="input-section">
                         <form id="textForm" class="flex">
-                            <input type="text" id="messageInput" placeholder="Type your farming question..."
-                                class="flex-grow block border-gray-300 rounded-l-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10">
-                            <button type="submit"
-                                class="bg-farmer-green-600 hover:bg-farmer-green-700 text-white px-4 rounded-r-md">
+                            <input type="text" id="messageInput" placeholder="{% if current_chat_id %}Type your farming question...{% else %}Please start a new chat first{% endif %}"
+                                class="flex-grow block border-gray-300 rounded-l-md shadow-sm focus:ring-farmer-green-500 focus:border-farmer-green-500 sm:text-sm h-10"
+                                {% if not current_chat_id %}disabled{% endif %}>
+                            <button type="submit" id="sendButton"
+                                class="bg-farmer-green-600 hover:bg-farmer-green-700 text-white px-4 rounded-r-md {% if not current_chat_id %}opacity-50 cursor-not-allowed{% endif %}"
+                                {% if not current_chat_id %}disabled{% endif %}>
                                 <i class="fa-solid fa-paper-plane"></i>
                             </button>
                         </form>
-                        <div class="mt-2 flex items-center">
-                            <label class="flex items-center text-sm text-gray-600 mr-4">
-                                <input type="checkbox" id="readAloud" class="mr-1 rounded text-farmer-green-600">
-                                Read aloud
-                            </label>
-                        </div>
                     </div>
 
                     <!-- Voice Input -->

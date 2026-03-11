@@ -13,11 +13,186 @@ import zipfile
 import mimetypes
 import requests
 from io import BytesIO
+import re
 
 load_dotenv()
 
+# Import Vertex AI modules with error handling
+try:
+    from google.oauth2 import service_account
+    import vertexai
+    from vertexai.generative_models import GenerativeModel, Part, GenerationConfig
+    VERTEX_AI_AVAILABLE = True
+except ImportError as e:
+    print(f"Vertex AI SDK not available: {e}")
+    VERTEX_AI_AVAILABLE = False
+
 # Ensure pytesseract path is set
 pytesseract.pytesseract.tesseract_cmd = os.getenv('TESSERACT_PATH', r'C:\Program Files\Tesseract-OCR\tesseract.exe')
+
+# Configure Vertex AI
+VERTEX_AI_PROJECT_ID = "cool-ocean-486014-h3"
+VERTEX_AI_LOCATION = "us-central1"
+VERTEX_SERVICE_ACCOUNT_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'vertex-gemini-service.json')
+
+# Initialize Vertex AI with service account credentials
+def initialize_vertex_ai():
+    """Initialize Vertex AI with service account credentials"""
+    if not VERTEX_AI_AVAILABLE:
+        return False
+    
+    try:
+        credentials = service_account.Credentials.from_service_account_file(
+            VERTEX_SERVICE_ACCOUNT_FILE
+        )
+        vertexai.init(
+            project=VERTEX_AI_PROJECT_ID,
+            location=VERTEX_AI_LOCATION,
+            credentials=credentials
+        )
+        return True
+    except Exception as e:
+        print(f"Error initializing Vertex AI: {e}")
+        return False
+
+def analyze_soil_report_with_vertexai(image_array):
+    """
+    Analyze soil report using Vertex AI Gemini Vision model
+    
+    Args:
+        image_array: Numpy array of the soil report image
+        
+    Returns:
+        dict: Extracted soil parameters and location information
+    """
+    try:
+        # Initialize Vertex AI
+        if not initialize_vertex_ai():
+            raise Exception("Failed to initialize Vertex AI")
+        
+        # Convert numpy array to PIL Image
+        if isinstance(image_array, np.ndarray):
+            image = Image.fromarray(image_array)
+        else:
+            image = image_array
+        
+        # Resize image if it's too large (max dimension 768px for better compatibility)
+        max_size = 768
+        if max(image.size) > max_size:
+            ratio = max_size / max(image.size)
+            new_size = (int(image.size[0] * ratio), int(image.size[1] * ratio))
+            image = image.resize(new_size, Image.LANCZOS)
+        
+        # Convert image to bytes
+        from io import BytesIO
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG", quality=90)
+        image_data = buffered.getvalue()
+        
+        # Create image part
+        image_part = Part.from_data(
+            data=image_data,
+            mime_type="image/jpeg"
+        )
+        
+        # Prepare the prompt (same as in app.py)
+        prompt = """
+        You're a soil analysis expert. Extract all available soil parameters from this soil report image.
+        I need exact numeric values for:
+        - pH
+        - EC (Electrical Conductivity)
+        - Organic Carbon
+        - Nitrogen
+        - Phosphorus
+        - Potassium
+        - Zinc
+        - Copper
+        - Iron
+        - Manganese
+        - Sulphur
+        
+        ALSO, look for and extract location information ONLY if the words "District" and "State" are EXPLICITLY mentioned in the report:
+        - District (only if labeled as "District" or "DISTRICT" in the report)
+        - State (only if labeled as "State" or "STATE" in the report)
+
+        Return only a JSON object with these parameters as keys and their values. 
+        For soil parameters, use numeric values without units. 
+        For district and state, use string values with quotes.
+
+        IMPORTANT: If a parameter is not visible or clearly mentioned in the report, set its value to null (not 0 or any default value).
+        
+        Example response format:
+        {
+            "ph": 7.2,
+            "ec": 0.45,
+            "organic_carbon": 0.65,
+            "nitrogen": 250,
+            "phosphorus": 28.5,
+            "potassium": 156,
+            "zinc": 0.8,
+            "copper": 0.6,
+            "iron": 4.5,
+            "manganese": 2.2,
+            "sulphur": 20,
+        }
+        
+        If no district or state is explicitly mentioned, return null for those fields like:
+        "district": null,
+        "state": null
+        """
+        
+        # Initialize Gemini Vision model
+        model = GenerativeModel("gemini-2.0-flash")
+        
+        # Create generation config
+        generation_config = GenerationConfig(
+            max_output_tokens=1024,
+            temperature=0.4,
+            top_p=0.8,
+        )
+        
+        # Generate response with image and text prompt
+        response = model.generate_content(
+            [prompt, image_part],
+            generation_config=generation_config
+        )
+        
+        print("Vertex AI Gemini Response (Soil Report):\n", response.text)
+        
+        # Extract the JSON part from the response
+        response_text = response.text
+        
+        json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
+        if json_match:
+            soil_params_json = json_match.group(1)
+        else:
+            json_match = re.search(r'{.*}', response_text, re.DOTALL)
+            if json_match:
+                soil_params_json = json_match.group(0)
+            else:
+                soil_params_json = '{}'
+        
+        # Parse the JSON
+        try:
+            soil_params = json.loads(soil_params_json)
+            
+            # Ensure district and state are proper values, not literal strings "null"
+            if soil_params.get('district') == "null" or soil_params.get('district') == "None":
+                soil_params['district'] = None
+                
+            if soil_params.get('state') == "null" or soil_params.get('state') == "None":
+                soil_params['state'] = None
+                
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            print(f"Attempted to parse: {soil_params_json}")
+            soil_params = {}
+        
+        return soil_params
+    
+    except Exception as e:
+        print(f"Vertex AI error in soil report analysis: {e}")
+        raise Exception(f"Vertex AI processing failed: {str(e)}")
 
 # Load the model
 MODEL_PATH = os.path.join('models', 'crop_prediction_lightgbm new.pkl')
