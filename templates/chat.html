@@ -5,9 +5,49 @@
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
 <style>
+    /* Full screen chat layout */
+    body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    nav {
+        flex-shrink: 0;
+    }
+
+    .flash-messages {
+        flex-shrink: 0;
+    }
+
+    main {
+        flex: 1;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    footer {
+        display: none !important;
+    }
+
+    /* Hide scrollbar for tab navigation */
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .hide-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+
     .chat-container {
-        height: calc(100vh - 350px);
-        min-height: 400px;
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
     }
 
     .message-bubble {
@@ -241,8 +281,66 @@
         width: 300px;
         background-color: #f8f9fa;
         border-right: 1px solid #e5e7eb;
-        height: calc(100vh - 64px);
+        height: 100%;
         overflow-y: auto;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+
+    /* Mobile Sidebar Adjustments */
+    @media (max-width: 768px) {
+        .chat-history {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 50;
+            transform: translateX(-100%);
+        }
+        
+        .chat-history.show {
+            transform: translateX(0);
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-backdrop {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 40;
+        }
+
+        .sidebar-backdrop.show {
+            display: block;
+        }
+    }
+
+    .main-chat-container {
+        display: flex;
+        flex: 1;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .chat-interface {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-width: 0; /* allows shrinking in flex container */
+    }
+
+    #chatInterface {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        border-radius: 0;
+        box-shadow: none;
     }
 
     .chat-history-item {
@@ -272,17 +370,6 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-    }
-
-    .main-chat-container {
-        display: flex;
-        height: calc(100vh - 64px);
-    }
-
-    .chat-interface {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
     }
 
     .plant-diagnosis-image {
@@ -383,8 +470,11 @@
 
 {% block content %}
 <div class="main-chat-container">
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
     <!-- Chat History Sidebar -->
-    <div class="chat-history ">
+    <div class="chat-history " id="chatHistorySidebar">
         <div class="p-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-800">Chat History</h3>
         </div>
@@ -448,51 +538,49 @@
 
     <!-- Main Chat Interface -->
     <div class="chat-interface">
-        <div class="relative">
-            <!-- Character Avatar -->
-            <!-- <div class="character-container absolute top-0 right-40 -mt-12 hidden md:block">
-                <img src="{{ url_for('static', filename='images/chatbot-img.png') }}" alt="Farmer Assistant"
-                    class="farmer-assistant">
-            </div> -->
-
-            <!-- Chat Interface -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden" id="chatInterface">
-                <!-- Chat Header -->
-                <div class="farmer-gradient text-white p-4">
+        <!-- Chat Interface -->
+        <div class="bg-white overflow-hidden flex flex-col h-full w-full" id="chatInterface">
+            <!-- Chat Header -->
+            <div class="farmer-gradient text-white p-2 sm:p-4 shrink-0 transition-all">
+                <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                        <div>
-                            <h2 class="text-lg font-semibold">Green Sathi - Your AI Farming Assistant</h2>
-                            <p class="text-xs text-white text-opacity-80">
-                                Current language: <span id="currentLanguage" class="font-semibold">{{ language|title }}</span>
+                        <button id="toggleSidebarBtn" class="md:hidden mr-2 sm:mr-3 text-white focus:outline-none p-1">
+                            <i class="fa-solid fa-bars text-lg sm:text-xl"></i>
+                        </button>
+                        <div class="flex flex-col">
+                            <h2 class="text-base sm:text-lg font-semibold truncate xl:max-w-none max-w-[120px] sm:max-w-[200px]">Green Sathi</h2>
+                            <p class="text-xs text-white text-opacity-80 hidden sm:block">
+                                Current lang: <span id="currentLanguage" class="font-semibold">{{ language|title }}</span>
                             </p>
                         </div>
-                        <div class="ml-auto flex items-center space-x-2">
-                            <button id="newChatButton"
-                                class="bg-white bg-opacity-20 text-white px-3 py-1 text-sm rounded-md border border-white border-opacity-30">
-                                <i class="fa-solid fa-plus mr-1"></i> New Chat
-                            </button>
-                            <select id="languageSelector"
-                                class="bg-white bg-opacity-20 text-black border border-white border-opacity-30 rounded-md text-sm p-1">
-                                <option value="english" {% if language=='english' %}selected{% endif %}>English</option>
-                                <option value="hindi" {% if language=='hindi' %}selected{% endif %}>हिंदी</option>
-                                <option value="bengali" {% if language=='bengali' %}selected{% endif %}>বাংলা</option>
-                                <option value="marathi" {% if language=='marathi' %}selected{% endif %}>मराठी</option>
-                                <option value="tamil" {% if language=='tamil' %}selected{% endif %}>தமிழ்</option>
-                                <option value="telugu" {% if language=='telugu' %}selected{% endif %}>తెలుగు</option>
-                                <option value="kannada" {% if language=='kannada' %}selected{% endif %}>ಕನ್ನಡ</option>
-                                <option value="gujarati" {% if language=='gujarati' %}selected{% endif %}>ગુજરાતી</option>
-                                <option value="urdu" {% if language=='urdu' %}selected{% endif %}>اردو</option>
-                                <option value="malayalam" {% if language=='malayalam' %}selected{% endif %}>മലയാളം</option>
-                                <option value="punjabi" {% if language=='punjabi' %}selected{% endif %}>ਪੰਜਾਬੀ</option>
-                                <option value="bhojpuri" {% if language=='bhojpuri' %}selected{% endif %}>भोजपुरी</option>
-                                <option value="bundelkhandi" {% if language=='bundelkhandi' %}selected{% endif %}>बुंदेलखंडी</option>
-                                <option value="haryanvi" {% if language=='haryanvi' %}selected{% endif %}>हरियाणवी</option>
-                            </select>
-                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1.5 sm:space-x-2">
+                        <button id="newChatButton"
+                            class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-md border border-white border-opacity-30 whitespace-nowrap flex items-center shadow-sm transition-all">
+                            <i class="fa-solid fa-plus sm:mr-1"></i> <span class="hidden sm:inline">New Chat</span>
+                        </button>
+                        <select id="languageSelector"
+                            class="bg-white bg-opacity-20 text-black border border-white border-opacity-30 rounded-md text-xs sm:text-sm py-1 sm:py-1.5 px-1 sm:px-2 shadow-sm focus:outline-none focus:ring-1 focus:ring-white">
+                            <option value="english" {% if language=='english' %}selected{% endif %}>English</option>
+                            <option value="hindi" {% if language=='hindi' %}selected{% endif %}>हिंदी</option>
+                            <option value="bengali" {% if language=='bengali' %}selected{% endif %}>বাংলা</option>
+                            <option value="marathi" {% if language=='marathi' %}selected{% endif %}>मराठी</option>
+                            <option value="tamil" {% if language=='tamil' %}selected{% endif %}>தமிழ்</option>
+                            <option value="telugu" {% if language=='telugu' %}selected{% endif %}>తెలుగు</option>
+                            <option value="kannada" {% if language=='kannada' %}selected{% endif %}>ಕನ್ನಡ</option>
+                            <option value="gujarati" {% if language=='gujarati' %}selected{% endif %}>ગુજરાતી</option>
+                            <option value="urdu" {% if language=='urdu' %}selected{% endif %}>اردو</option>
+                            <option value="malayalam" {% if language=='malayalam' %}selected{% endif %}>മലയാളം</option>
+                            <option value="punjabi" {% if language=='punjabi' %}selected{% endif %}>ਪੰਜਾਬੀ</option>
+                            <option value="bhojpuri" {% if language=='bhojpuri' %}selected{% endif %}>भोजपुरी</option>
+                            <option value="bundelkhandi" {% if language=='bundelkhandi' %}selected{% endif %}>बुंदेलखंडी</option>
+                            <option value="haryanvi" {% if language=='haryanvi' %}selected{% endif %}>हरियाणवी</option>
+                        </select>
                     </div>
                 </div>
+            </div>
 
-                <!-- Chat Messages -->
+            <!-- Chat Messages -->
                 <div id="chatMessages" class="chat-container p-4 overflow-y-auto">
                     {% if current_chat_id %}
                         <!-- Show messages if a chat is active -->
@@ -540,10 +628,10 @@
                                     <i class="fa-solid fa-comments text-farmer-green-500 text-6xl mb-4"></i>
                                 </div>
                                 <h3 class="text-2xl font-semibold text-gray-800 mb-2">
-                                    Welcome to Green Sathi
+                                    Green Sathi
                                 </h3>
-                                <p class="text-gray-600 mb-6">
-                                    Start a new conversation with your AI farming assistant
+                                <p class="text-gray-600 mb-6" id="welcomeMessageText">
+                                    {{ welcome_message }}
                                 </p>
                                 <button id="startNewChatButton" class="bg-farmer-green-600 hover:bg-farmer-green-700 text-white px-6 py-3 rounded-lg shadow-lg transition-all transform hover:scale-105">
                                     <i class="fa-solid fa-plus mr-2"></i> Start New Chat
@@ -562,32 +650,32 @@
                     </div>
                 </div>
 
-                <!-- Input Area -->
-                <div class="chat-input-container p-3" data-chat-id="{{ current_chat_id or '' }}">
+                    <!-- Input Area -->
+                <div class="chat-input-container p-3 shrink-0" data-chat-id="{{ current_chat_id or '' }}">
                     <!-- Input Type Tabs -->
-                    <div class="flex border-b border-gray-200 mb-3">
+                    <div class="flex overflow-x-auto flex-nowrap hide-scrollbar border-b border-gray-200 mb-2 sm:mb-3 pb-1 space-x-1 sm:space-x-2">
                         <button type="button" id="tabText"
-                            class="tab-button active flex items-center py-2 px-4 border-b-2 text-sm font-medium {% if not current_chat_id %}opacity-50 cursor-not-allowed{% endif %}"
+                            class="tab-button active shrink-0 flex items-center py-2 px-3 sm:px-4 border-b-2 text-xs sm:text-sm font-medium whitespace-nowrap {% if not current_chat_id %}opacity-50 cursor-not-allowed{% endif %}"
                             {% if not current_chat_id %}disabled{% endif %}>
-                            <i class="fa-solid fa-comment mr-2"></i> Text
+                            <i class="fa-solid fa-comment mr-1.5 sm:mr-2"></i> Text
                         </button>
                         <button type="button" id="tabVoice"
-                            class="tab-button flex items-center py-2 px-4 border-b-2 border-transparent text-sm font-medium text-gray-500 {% if not current_chat_id %}opacity-50 cursor-not-allowed{% endif %}"
+                            class="tab-button shrink-0 flex items-center py-2 px-3 sm:px-4 border-b-2 border-transparent text-xs sm:text-sm font-medium text-gray-500 whitespace-nowrap {% if not current_chat_id %}opacity-50 cursor-not-allowed{% endif %}"
                             {% if not current_chat_id %}disabled{% endif %}>
-                            <i class="fa-solid fa-microphone mr-2"></i> Voice
+                            <i class="fa-solid fa-microphone mr-1.5 sm:mr-2"></i> Voice
                         </button>
                         <button type="button" id="tabImage"
-                            class="tab-button flex items-center py-2 px-4 border-b-2 border-transparent text-sm font-medium text-gray-500 {% if not current_chat_id %}opacity-50 cursor-not-allowed{% endif %}"
+                            class="tab-button shrink-0 flex items-center py-2 px-3 sm:px-4 border-b-2 border-transparent text-xs sm:text-sm font-medium text-gray-500 whitespace-nowrap {% if not current_chat_id %}opacity-50 cursor-not-allowed{% endif %}"
                             {% if not current_chat_id %}disabled{% endif %}>
-                            <i class="fa-solid fa-camera mr-2"></i> Image
+                            <i class="fa-solid fa-camera mr-1.5 sm:mr-2"></i> Image
                         </button>
                         <a href="{{ url_for('soil_report') }}" target="_blank"
-                            class="tab-button flex items-center py-2 px-4 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">
-                            <i class="fa-solid fa-file-invoice mr-2"></i> Soil Report Analysis
+                            class="tab-button shrink-0 flex items-center py-2 px-3 sm:px-4 border-b-2 border-transparent text-xs sm:text-sm font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap">
+                            <i class="fa-solid fa-file-invoice mr-1.5 sm:mr-2"></i> Soil Report Analysis
                         </a>
                         <a href="{{ url_for('weather') }}" 
-                            class="tab-button flex items-center py-2 px-4 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">
-                            <i class="fa-solid fa-cloud-sun-rain mr-2"></i> Weather Analysis
+                            class="tab-button shrink-0 flex items-center py-2 px-3 sm:px-4 border-b-2 border-transparent text-xs sm:text-sm font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap">
+                            <i class="fa-solid fa-cloud-sun-rain mr-1.5 sm:mr-2"></i> Weather Analysis
                         </a>
                     </div>
 
@@ -654,7 +742,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     </div>
 </div>
 
@@ -667,4 +754,23 @@
 <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
 <script src="{{ url_for('static', filename='js/soil-chat-renderer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleBtn = document.getElementById('toggleSidebarBtn');
+        const sidebar = document.getElementById('chatHistorySidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+
+        if (toggleBtn && sidebar && backdrop) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('show');
+                backdrop.classList.toggle('show');
+            });
+
+            backdrop.addEventListener('click', () => {
+                sidebar.classList.remove('show');
+                backdrop.classList.remove('show');
+            });
+        }
+    });
+</script>
 {% endblock %}

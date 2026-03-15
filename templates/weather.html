@@ -146,33 +146,42 @@
         font-size: 1.25rem;
         font-weight: 600;
     }
+
+    /* Hide scrollbar for tabs */
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .hide-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 py-8">
+<div class="max-w-6xl mx-auto px-4 py-2 md:py-4">
     <!-- Header Section -->
-    <div class="mb-8 text-center">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+    <div class="mb-3 md:mb-4 text-center">
+        <h1 class="text-xl md:text-3xl font-bold text-gray-800 mb-1">
             <span class="text-farmer-green-600">Weather</span> Analysis
         </h1>
-        <p class="text-gray-600 max-w-2xl mx-auto">Get real-time weather insights and agricultural advice tailored for your farm location</p>
+        <p class="text-gray-600 max-w-2xl mx-auto text-xs md:text-sm leading-tight md:leading-normal">Get real-time weather insights and agricultural advice tailored for your farm location</p>
     </div>
 
     <!-- Current Location Section -->
-    <div class="bg-white p-6 rounded-xl shadow-md mb-6 card-transition">
+    <div class="bg-white p-3 md:p-4 rounded-xl shadow-md mb-3 md:mb-4 card-transition">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div class="flex items-center">
-                <i class="fas fa-map-marker-alt text-farmer-green-500 text-xl mr-3 location-icon"></i>
+            <div class="flex items-center mb-2 md:mb-0">
+                <i class="fas fa-map-marker-alt text-farmer-green-500 text-lg md:text-xl mr-2 md:mr-3 location-icon"></i>
                 <div>
-                    <h2 class="text-xl font-semibold text-gray-800" id="locationName">Loading location...</h2>
-                    <p class="text-gray-600 text-sm" id="coordinates">
+                    <h2 class="text-base md:text-xl font-semibold text-gray-800" id="locationName">Loading location...</h2>
+                    <p class="text-gray-600 text-[10px] md:text-sm leading-tight" id="coordinates">
                         <span id="latitude">--</span>°, <span id="longitude">--</span>°
                     </p>
                 </div>
             </div>
-            <div class="mt-4 md:mt-0">
-                <button id="refreshWeather" class="bg-farmer-green-600 hover:bg-farmer-green-700 text-white px-4 py-2 rounded-md flex items-center text-sm transition-all duration-300">
+            <div class="w-full md:w-auto mt-2 md:mt-0">
+                <button id="refreshWeather" class="w-full justify-center bg-farmer-green-600 hover:bg-farmer-green-700 text-white px-4 py-2 rounded-md flex items-center text-sm md:text-base transition-all duration-300">
                     <i class="fas fa-sync-alt mr-2"></i> Refresh Data
                 </button>
             </div>
@@ -189,76 +198,76 @@
     <!-- Weather Content (hidden until loaded) -->
     <div id="weatherContent" class="hidden">
         <!-- Weather Tabs -->
-        <div class="mb-6 flex justify-center">
-            <div class="flex space-x-2 md:space-x-8 border-b border-gray-200 w-full max-w-2xl">
-                <div class="weather-tab active" data-tab="current">Current Weather</div>
-                <div class="weather-tab" data-tab="hourly">Hourly Forecast</div>
-                <div class="weather-tab" data-tab="weekly">Weekly Forecast</div>
-                <div class="weather-tab" data-tab="agriculture">Farm Insights</div>
+        <div class="mb-3 md:mb-4 flex justify-center w-full">
+            <div class="flex space-x-1 md:space-x-8 border-b border-gray-200 w-full overflow-x-auto hide-scrollbar justify-start md:justify-center">
+                <div class="weather-tab active whitespace-nowrap px-3 py-2 md:px-6 md:py-3 text-sm md:text-base shrink-0" data-tab="current">Current Weather</div>
+                <div class="weather-tab whitespace-nowrap px-3 py-2 md:px-6 md:py-3 text-sm md:text-base shrink-0" data-tab="hourly">Hourly Forecast</div>
+                <div class="weather-tab whitespace-nowrap px-3 py-2 md:px-6 md:py-3 text-sm md:text-base shrink-0" data-tab="weekly">Weekly Forecast</div>
+                <div class="weather-tab whitespace-nowrap px-3 py-2 md:px-6 md:py-3 text-sm md:text-base shrink-0" data-tab="agriculture">Farm Insights</div>
             </div>
         </div>
         
         <!-- Current Weather Tab -->
         <div id="current-tab" class="tab-content active">
             <!-- Current Weather Card -->
-            <div class="weather-card bg-white shadow-md mb-8 section-fade">
-                <div class="farmer-gradient p-6 text-white">
+            <div class="weather-card bg-white shadow-md mb-4 md:mb-6 section-fade">
+                <div class="farmer-gradient p-4 md:p-5 text-white">
                     <div class="flex flex-col md:flex-row justify-between items-center">
-                        <div class="flex items-center mb-6 md:mb-0">
-                            <img id="currentWeatherIcon" src="" alt="Weather" class="weather-icon mr-4">
+                        <div class="flex flex-row items-center mb-4 md:mb-0">
+                            <img id="currentWeatherIcon" src="" alt="Weather" class="weather-icon mr-3 md:mr-4">
                             <div>
-                                <h2 class="temperature-highlight" id="currentTemp">--°C</h2>
-                                <p class="text-lg font-medium" id="currentCondition">--</p>
+                                <h2 class="temperature-highlight text-4xl md:text-5xl" id="currentTemp">--°C</h2>
+                                <p class="text-base md:text-lg font-medium" id="currentCondition">--</p>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-x-8 gap-y-4">
-                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-3 rounded">
-                                <i class="fas fa-wind text-white mr-3 text-xl"></i>
+                        <div class="grid grid-cols-2 gap-3 md:gap-x-8 md:gap-y-4 w-full md:w-auto">
+                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-2 md:p-3 rounded">
+                                <i class="fas fa-wind text-white mr-2 md:mr-3 text-lg md:text-xl"></i>
                                 <div>
-                                    <div class="stat-label">Wind Speed</div>
-                                    <div class="stat-value" id="currentWind">-- km/h</div>
+                                    <div class="stat-label text-xs">Wind Speed</div>
+                                    <div class="stat-value text-sm md:text-xl" id="currentWind">-- km/h</div>
                                 </div>
                             </div>
-                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-3 rounded">
-                                <i class="fas fa-tint text-white mr-3 text-xl"></i>
+                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-2 md:p-3 rounded">
+                                <i class="fas fa-tint text-white mr-2 md:mr-3 text-lg md:text-xl"></i>
                                 <div>
-                                    <div class="stat-label">Humidity</div>
-                                    <div class="stat-value" id="currentHumidity">--%</div>
+                                    <div class="stat-label text-xs">Humidity</div>
+                                    <div class="stat-value text-sm md:text-xl" id="currentHumidity">--%</div>
                                 </div>
                             </div>
-                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-3 rounded">
-                                <i class="fas fa-temperature-high text-white mr-3 text-xl"></i>
+                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-2 md:p-3 rounded">
+                                <i class="fas fa-temperature-high text-white mr-2 md:mr-3 text-lg md:text-xl"></i>
                                 <div>
-                                    <div class="stat-label">Feels Like</div>
-                                    <div class="stat-value" id="feelsLike">--°C</div>
+                                    <div class="stat-label text-xs">Feels Like</div>
+                                    <div class="stat-value text-sm md:text-xl" id="feelsLike">--°C</div>
                                 </div>
                             </div>
-                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-3 rounded">
-                                <i class="fas fa-cloud-rain text-white mr-3 text-xl"></i>
+                            <div class="flex items-center stat-card bg-white bg-opacity-10 p-2 md:p-3 rounded">
+                                <i class="fas fa-cloud-rain text-white mr-2 md:mr-3 text-lg md:text-xl"></i>
                                 <div>
-                                    <div class="stat-label">Precipitation</div>
-                                    <div class="stat-value" id="precipitation">-- mm</div>
+                                    <div class="stat-label text-xs">Precipitation</div>
+                                    <div class="stat-value text-sm md:text-xl" id="precipitation">-- mm</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-white border-opacity-30">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="mt-3 md:mt-4 pt-2 md:pt-3 border-t border-white border-opacity-30">
+                        <div class="grid grid-cols-4 gap-2 md:gap-4">
                             <div class="text-center">
-                                <span class="text-sm block">Sunrise</span>
-                                <p id="sunrise" class="font-medium text-xl">--:-- AM</p>
+                                <span class="text-xs md:text-sm block">Sunrise</span>
+                                <p id="sunrise" class="font-medium text-sm md:text-xl">--:--</p>
                             </div>
                             <div class="text-center">
-                                <span class="text-sm block">Sunset</span>
-                                <p id="sunset" class="font-medium text-xl">--:-- PM</p>
+                                <span class="text-xs md:text-sm block">Sunset</span>
+                                <p id="sunset" class="font-medium text-sm md:text-xl">--:--</p>
                             </div>
                             <div class="text-center">
-                                <span class="text-sm block">UV Index</span>
-                                <p id="uvIndex" class="font-medium text-xl">--</p>
+                                <span class="text-xs md:text-sm block">UV Index</span>
+                                <p id="uvIndex" class="font-medium text-sm md:text-xl">--</p>
                             </div>
                             <div class="text-center">
-                                <span class="text-sm block">Pressure</span>
-                                <p id="pressure" class="font-medium text-xl">-- hPa</p>
+                                <span class="text-xs md:text-sm block">Pressure</span>
+                                <p id="pressure" class="font-medium text-sm md:text-xl">--</p>
                             </div>
                         </div>
                     </div>
@@ -266,8 +275,8 @@
             </div>
 
             <!-- Farming Advice Card -->
-            <div class="bg-white p-6 rounded-xl shadow-md mb-8 advice-card section-fade">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+            <div class="bg-white p-3 md:p-5 rounded-xl shadow-md mb-4 md:mb-6 advice-card section-fade">
+                <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-3 flex items-center">
                     <i class="fas fa-seedling text-farmer-green-500 mr-2"></i> 
                     Farming Advice for Today
                 </h2>
@@ -280,12 +289,12 @@
         <!-- Hourly Forecast Tab -->
         <div id="hourly-tab" class="tab-content">
             <!-- Hourly Forecast -->
-            <div class="bg-white p-6 rounded-xl shadow-md mb-8 section-fade">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+            <div class="bg-white p-3 md:p-5 rounded-xl shadow-md mb-4 md:mb-6 section-fade">
+                <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-3 md:mb-4 flex items-center">
                     <i class="fas fa-clock text-farmer-green-500 mr-2"></i>
                     24-Hour Forecast
                 </h2>
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto hide-scrollbar">
                     <div class="flex space-x-4 py-2" id="hourlyForecast">
                         <!-- Hourly forecast items will be populated by JavaScript -->
                     </div>
@@ -296,33 +305,33 @@
         <!-- Weekly Forecast Tab -->
         <div id="weekly-tab" class="tab-content">
             <!-- 7-Day Forecast -->
-            <div class="bg-white p-6 rounded-xl shadow-md mb-8 section-fade">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+            <div class="bg-white p-3 md:p-5 rounded-xl shadow-md mb-4 md:mb-6 section-fade">
+                <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-3 md:mb-4 flex items-center">
                     <i class="fas fa-calendar-alt text-farmer-green-500 mr-2"></i>
                     7-Day Forecast
                 </h2>
                 
                 <!-- Slideshow container -->
-                <div class="relative overflow-hidden">
-                    <!-- Slides container with transition effect -->
-                    <div id="forecastSlideContainer" class="transition-transform duration-500 ease-in-out">
-                        <!-- Slides will be populated by JavaScript -->
-                    </div>
-                    
-                    <!-- Navigation arrows -->
-                    <div class="absolute inset-y-0 left-0 flex items-center">
-                        <button id="prevSlide" class="bg-gray-800 bg-opacity-50 hover:bg-opacity-70 text-white rounded-r-md p-2 transition-all">
+                <div class="relative overflow-hidden w-full px-8 md:px-12">
+                    <!-- Navigation arrows are moved outside the inner flex block to avoid overlapping -->
+                    <div class="absolute inset-y-0 left-0 flex items-center z-10">
+                        <button id="prevSlide" class="bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center shadow-md transition-all">
                             <i class="fas fa-chevron-left"></i>
                         </button>
                     </div>
-                    <div class="absolute inset-y-0 right-0 flex items-center">
-                        <button id="nextSlide" class="bg-gray-800 bg-opacity-50 hover:bg-opacity-70 text-white rounded-l-md p-2 transition-all">
+                    <div class="absolute inset-y-0 right-0 flex items-center z-10">
+                        <button id="nextSlide" class="bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center shadow-md transition-all">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
                     
+                    <!-- Slides container with transition effect -->
+                    <div id="forecastSlideContainer" class="transition-transform duration-500 ease-in-out w-full flex pb-8">
+                        <!-- Slides will be populated by JavaScript -->
+                    </div>
+                    
                     <!-- Slide indicators -->
-                    <div class="absolute bottom-2 left-0 right-0 flex justify-center space-x-2">
+                    <div class="absolute bottom-2 left-0 right-0 flex justify-center space-x-2 z-10">
                         <!-- Indicators will be added by JavaScript -->
                     </div>
                 </div>
@@ -339,14 +348,14 @@
         <!-- Agricultural Metrics Tab -->
         <div id="agriculture-tab" class="tab-content">
             <!-- Agricultural Metrics -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
                 <!-- Soil Moisture & Temperature -->
-                <div class="bg-white p-6 rounded-xl shadow-md section-fade">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                <div class="bg-white p-3 md:p-4 rounded-xl shadow-md section-fade">
+                    <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-3 flex items-center">
                         <i class="fas fa-water text-farmer-green-500 mr-2"></i>
                         Soil Conditions
                     </h2>
-                    <div class="space-y-6">
+                    <div class="space-y-3 md:space-y-4">
                         <div>
                             <div class="flex justify-between mb-2">
                                 <span class="text-gray-700 font-medium">Soil Moisture</span>
@@ -379,12 +388,12 @@
                 </div>
 
                 <!-- Precipitation Forecast -->
-                <div class="bg-white p-6 rounded-xl shadow-md section-fade">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                <div class="bg-white p-3 md:p-4 rounded-xl shadow-md section-fade">
+                    <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-3 flex items-center">
                         <i class="fas fa-cloud-rain text-farmer-green-500 mr-2"></i>
                         Precipitation Forecast
                     </h2>
-                    <div class="space-y-6">
+                    <div class="space-y-3 md:space-y-4">
                         <div>
                             <div class="flex justify-between mb-2">
                                 <span class="text-gray-700 font-medium">Today</span>
@@ -809,50 +818,50 @@
                 // Create slides for each day
                 forecastData.forEach((day, index) => {
                     const slide = document.createElement('div');
-                    slide.className = 'w-full flex-shrink-0 px-4';
+                    slide.className = 'w-full md:w-1/2 lg:w-1/3 flex-shrink-0 px-2';
                     slide.setAttribute('data-slide-index', index);
                     
                     // Create content for the slide
                     slide.innerHTML = `
-                        <div class="bg-white p-6 rounded-xl shadow-sm max-w-md mx-auto">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-xl font-bold">${day.day_of_week}</h3>
-                                <span class="text-sm px-2 py-1 bg-farmer-green-100 text-farmer-green-800 rounded-full">${day.date}</span>
+                        <div class="bg-gray-50 border border-gray-100 p-4 rounded-xl shadow-sm h-full mx-auto w-full">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-lg font-bold text-gray-800">${day.day_of_week}</h3>
+                                <span class="text-xs px-2 py-1 bg-farmer-green-100 text-farmer-green-800 rounded-lg font-medium">${day.date}</span>
                             </div>
                             
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center">
-                                    <img src="${day.icon_url}" alt="${day.condition}" class="weather-icon mr-4">
+                            <div class="flex flex-col mb-4 bg-white p-3 rounded-lg border border-gray-100">
+                                <div class="flex items-center mb-2">
+                                    <img src="${day.icon_url}" alt="${day.condition}" class="w-12 h-12 mr-3">
                                     <div>
-                                        <p class="text-lg font-medium">${day.condition}</p>
-                                        <p class="text-gray-600">Humidity: ${day.humidity}%</p>
+                                        <p class="text-base font-medium leading-tight text-gray-800">${day.condition}</p>
+                                        <p class="text-xs text-gray-500">Hum: ${day.humidity}%</p>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <p class="text-2xl font-bold text-farmer-green-600">${Math.round(day.temp_max)}°C</p>
-                                    <p class="text-gray-600">Low: ${Math.round(day.temp_min)}°C</p>
+                                <div class="flex items-end justify-between mt-1">
+                                    <p class="text-2xl font-bold text-farmer-green-600">${Math.round(day.temp_max)}°<span class="text-base">C</span></p>
+                                    <p class="text-sm text-gray-500 font-medium">Low: ${Math.round(day.temp_min)}°C</p>
                                 </div>
                             </div>
                             
-                            <div class="grid grid-cols-2 gap-4 mb-4">
-                                <div class="bg-gray-50 p-3 rounded-lg">
-                                    <p class="text-gray-500 text-sm">Precipitation</p>
-                                    <p class="font-medium">${day.precipitation} mm</p>
+                            <div class="grid grid-cols-2 gap-2 mb-3">
+                                <div class="bg-blue-50 p-2 rounded-lg border border-blue-100 text-center">
+                                    <p class="text-blue-500 text-[10px] uppercase font-bold tracking-wider mb-1">Rain</p>
+                                    <p class="font-bold text-blue-700 text-sm">${day.precipitation} mm</p>
                                 </div>
-                                <div class="bg-gray-50 p-3 rounded-lg">
-                                    <p class="text-gray-500 text-sm">Wind</p>
-                                    <p class="font-medium">${data.current.wind_speed} km/h</p>
+                                <div class="bg-teal-50 p-2 rounded-lg border border-teal-100 text-center">
+                                    <p class="text-teal-600 text-[10px] uppercase font-bold tracking-wider mb-1">Wind</p>
+                                    <p class="font-bold text-teal-800 text-sm">${data.current.wind_speed} <span class="text-[10px]">km/h</span></p>
                                 </div>
                             </div>
                             
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <p class="text-gray-700">
-                                    <i class="fas fa-info-circle text-farmer-green-500 mr-2"></i>
-                                    ${day.precipitation > 5 
-                                        ? 'Expect rain. Plan indoor farm activities.' 
+                            <div class="mt-auto pt-2">
+                                <p class="text-xs text-gray-600 bg-white p-2 rounded border border-gray-100 flex items-start">
+                                    <i class="fas fa-info-circle text-farmer-green-500 mt-0.5 mr-1.5 flex-shrink-0"></i>
+                                    <span class="leading-tight">${day.precipitation > 5 
+                                        ? 'Expect rain. Plan indoor activities.' 
                                         : day.temp_max > 30 
-                                            ? 'High temperature. Ensure proper irrigation.' 
-                                            : 'Good conditions for field work.'}
+                                            ? 'Hot temperature. Ensure irrigation.' 
+                                            : 'Good field conditions.'}</span>
                                 </p>
                             </div>
                         </div>
@@ -868,7 +877,9 @@
                 });
                 
                 // Set the active indicator
-                updateIndicators();
+                let slidesPerView = window.innerWidth >= 1024 ? 3 : (window.innerWidth >= 768 ? 2 : 1);
+                let maxSlide = Math.max(0, totalSlides - slidesPerView);
+                updateIndicators(maxSlide);
             }
             
             // Create the slides
@@ -905,36 +916,65 @@
         function updateSlidePosition() {
             const container = document.getElementById('forecastSlideContainer');
             if (container) {
-                container.style.transform = `translateX(-${currentSlide * 100}%)`;
-                updateIndicators();
+                // Determine slides to show based on screen width
+                let slidesPerView = window.innerWidth >= 1024 ? 3 : (window.innerWidth >= 768 ? 2 : 1);
+                let maxSlide = Math.max(0, totalSlides - slidesPerView);
+                
+                // Keep currentSlide in bounds just in case of resize
+                if (currentSlide > maxSlide) currentSlide = maxSlide;
+
+                // Calculate the percentage width of one slide relative to the container
+                let slideWidthPercent = 100 / slidesPerView;
+                
+                // Shift by the width of one slide times the current index
+                container.style.transform = `translateX(-${currentSlide * slideWidthPercent}%)`;
+                updateIndicators(maxSlide);
             }
         }
         
         // Function to update indicator dots
-        function updateIndicators() {
+        function updateIndicators(maxSlide) {
+            const indicatorsContainer = document.querySelector('.absolute.bottom-2');
+            if (!indicatorsContainer) return;
+
             const indicators = document.querySelectorAll('[data-indicator-index]');
+            // Hide extra indicators for responsive maxSlide
             indicators.forEach((indicator, index) => {
-                if (index === currentSlide) {
-                    indicator.classList.add('bg-farmer-green-500', 'w-4');
-                    indicator.classList.remove('bg-gray-300', 'w-2');
+                if (index > (maxSlide || totalSlides - 1)) {
+                    indicator.style.display = 'none';
                 } else {
-                    indicator.classList.add('bg-gray-300', 'w-2');
-                    indicator.classList.remove('bg-farmer-green-500', 'w-4');
+                    indicator.style.display = 'block';
+                    if (index === currentSlide) {
+                        indicator.classList.add('bg-farmer-green-500', 'w-4');
+                        indicator.classList.remove('bg-gray-300', 'w-2');
+                    } else {
+                        indicator.classList.add('bg-gray-300', 'w-2');
+                        indicator.classList.remove('bg-farmer-green-500', 'w-4');
+                    }
                 }
             });
         }
         
         // Function to go to next slide
         function goToNextSlide() {
-            currentSlide = (currentSlide + 1) % totalSlides;
+            let slidesPerView = window.innerWidth >= 1024 ? 3 : (window.innerWidth >= 768 ? 2 : 1);
+            let maxSlide = Math.max(0, totalSlides - slidesPerView);
+            currentSlide = (currentSlide + 1) > maxSlide ? 0 : currentSlide + 1;
             updateSlidePosition();
         }
         
         // Function to go to previous slide
         function goToPrevSlide() {
-            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            let slidesPerView = window.innerWidth >= 1024 ? 3 : (window.innerWidth >= 768 ? 2 : 1);
+            let maxSlide = Math.max(0, totalSlides - slidesPerView);
+            currentSlide = (currentSlide - 1 < 0) ? maxSlide : currentSlide - 1;
             updateSlidePosition();
         }
+
+        // Add resize listener to update layout dynamically
+        window.addEventListener('resize', () => {
+            updateSlidePosition();
+        });
         
         // Function to setup automatic slideshow
         function resetSlideshow() {

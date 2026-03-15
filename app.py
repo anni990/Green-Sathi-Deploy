@@ -11,7 +11,7 @@ import uuid
 import logging
 
 # Import model handlers
-from models.chat_model import process_text_query, get_welcome_message, db, ChatSession, ChatMessage, PlantImage, SoilReport
+from models.chat_model import process_text_query, get_welcome_message, WELCOME_MESSAGES, db, ChatSession, ChatMessage, PlantImage, SoilReport
 from models.speech_handler import speech_to_text, text_to_speech
 from models.image_diagnosis import analyze_plant_image
 from models.soil_report import process_soil_report, predict_crop, generate_fertilizer_recommendations, get_crop_varieties, convert_file_to_image
@@ -318,16 +318,32 @@ def chat():
                 if current_user.is_authenticated and current_chat.user_id is None:
                     current_chat.user_id = user_id
                     db.session.commit()
+
+                # Update language if it has changed
+                if current_chat.language != language:
+                    current_chat.language = language
+                    db.session.commit()
                     
                 messages = ChatMessage.query.filter_by(chat_id=chat_id).order_by(ChatMessage.timestamp).all()
+                
+                # Check if the first message is a default welcome message, and translate it
+                if messages and messages[0].sender == 'bot' and messages[0].text in WELCOME_MESSAGES.values():
+                    expected_welcome = get_welcome_message(language)
+                    if messages[0].text != expected_welcome:
+                        messages[0].text = expected_welcome
+                        db.session.commit()
         
         # Don't create a new chat automatically - let the user click "New Chat" button
+        
+        # Get translated welcome message for empty state
+        welcome_message = get_welcome_message(language)
         
         return render_template('chat.html',
                             chat_history=chat_history,
                             current_chat_id=chat_id,
                             messages=messages,
-                            language=language)
+                            language=language,
+                            welcome_message=welcome_message)
     except Exception as e:
         import traceback
         print(f"Error in chat route: {str(e)}")
@@ -958,29 +974,76 @@ def delete_account():
 @login_required
 def history():
     from ast import literal_eval  # Safe parsing
+    from datetime import datetime, timedelta
     
     # Get user_id if authenticated
     user_id = current_user.id if current_user.is_authenticated else None
     
-    # Filter chat sessions by user_id
-    if user_id:
-        chat_sessions = ChatSession.query.filter_by(user_id=user_id).order_by(ChatSession.created_at.desc()).all()
-        plant_images = PlantImage.query.filter_by(user_id=user_id).order_by(PlantImage.timestamp.desc()).all()
-        soil_reports = SoilReport.query.filter_by(user_id=user_id).order_by(SoilReport.created_at.desc()).all()
-    else:
-        chat_sessions = ChatSession.query.filter_by(user_id=None).order_by(ChatSession.created_at.desc()).all()
-        plant_images = PlantImage.query.filter_by(user_id=None).order_by(PlantImage.timestamp.desc()).all()
-        soil_reports = SoilReport.query.filter_by(user_id=None).order_by(SoilReport.created_at.desc()).all()
+    # Check for date filter
+    raw_date_filter = request.args.get('date')
+    date_filter = None
     
-    # For each chat session, get the first message for preview
+    # Check if 'all' is explicitly requested
+    is_all = (raw_date_filter == 'all')
+    
+    # Default to today if no date is provided
+    if raw_date_filter is None:
+        date_filter_str = datetime.today().strftime('%Y-%m-%d')
+    elif is_all:
+        date_filter_str = None
+    else:
+        date_filter_str = raw_date_filter
+    
+    # Base queries
+    if user_id:
+        chat_query = ChatSession.query.filter_by(user_id=user_id)
+        plant_query = PlantImage.query.filter_by(user_id=user_id)
+        soil_query = SoilReport.query.filter_by(user_id=user_id)
+    else:
+        chat_query = ChatSession.query.filter_by(user_id=None)
+        plant_query = PlantImage.query.filter_by(user_id=None)
+        soil_query = SoilReport.query.filter_by(user_id=None)
+        
+    # Apply date filter if provided
+    if date_filter_str:
+        try:
+            date_filter = datetime.strptime(date_filter_str, '%Y-%m-%d').date()
+            next_day = date_filter + timedelta(days=1)
+            
+            chat_query = chat_query.filter(ChatSession.created_at >= date_filter, ChatSession.created_at < next_day)
+            plant_query = plant_query.filter(PlantImage.timestamp >= date_filter, PlantImage.timestamp < next_day)
+            soil_query = soil_query.filter(SoilReport.created_at >= date_filter, SoilReport.created_at < next_day)
+        except ValueError:
+            date_filter_str = None
+            
+    chat_sessions = chat_query.order_by(ChatSession.created_at.desc()).all()
+    plant_images = plant_query.order_by(PlantImage.timestamp.desc()).all()
+    soil_reports = soil_query.order_by(SoilReport.created_at.desc()).all()
+    
+    # For each chat session, get the best message for preview
     for session in chat_sessions:
-        first_message = ChatMessage.query.filter_by(chat_id=session.id).order_by(ChatMessage.timestamp).first()
-        if first_message:
-            session.sample = first_message
-            session.message_count = ChatMessage.query.filter_by(chat_id=session.id).count()
+        session.message_count = ChatMessage.query.filter_by(chat_id=session.id).count()
+        
+        # Give priority to the first user message
+        first_user_msg = ChatMessage.query.filter_by(chat_id=session.id, sender='user').order_by(ChatMessage.timestamp).first()
+        first_any_msg = ChatMessage.query.filter_by(chat_id=session.id).order_by(ChatMessage.timestamp).first()
+        
+        best_message = first_user_msg or first_any_msg
+        
+        if best_message:
+            session.sample = best_message
+            if best_message.input_type == 'soil_report' or '__SOIL_CHAT_PAYLOAD__' in best_message.text:
+                session.sample_text_display = "📄 Uploaded Soil Report for analysis"
+            elif best_message.input_type == 'image' or '<img' in best_message.text:
+                session.sample_text_display = "🖼️ Uploaded Plant Image for disease diagnosis"
+            else:
+                # Strip HTML tags like <b>, <i>, <br> for plain text preview
+                import re
+                clean_text = re.sub(r'<[^>]+>', '', best_message.text)
+                session.sample_text_display = clean_text
         else:
             session.sample = None
-            session.message_count = 0
+            session.sample_text_display = "No messages yet."
 
     # --- 💡 Convert crop_recommendations for each soil_report ---
     for report in soil_reports:
@@ -994,7 +1057,8 @@ def history():
     return render_template('history.html', 
                           chat_sessions=chat_sessions,
                           plant_images=plant_images,
-                          soil_reports=soil_reports)
+                          soil_reports=soil_reports,
+                          current_date_filter=date_filter_str)
 
 
 @app.route('/chat_session/<chat_id>')
@@ -2739,4 +2803,4 @@ def delete_crop(crop_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8004)
+    app.run(host='0.0.0.0', port=8004, debug=True)

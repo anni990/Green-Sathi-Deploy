@@ -113,19 +113,19 @@
 
 <body class="font-sans">
     <!-- Navigation -->
-    <nav class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-5">
-            <div class="flex justify-between h-16">
+    <nav class="bg-white shadow-md relative z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-auto min-h-[4rem] lg:min-h-[4.5rem]">
                 <div class="flex">
-                    <div class="flex-shrink-0 flex items-center">
+                    <div class="flex-shrink-0 flex items-center py-2">
                         <!-- the logo is of rectangle shape size 600*215 make it fit in the space-->
-                        <a href="{{ url_for('index') }}">
+                        <a href="{{ url_for('index') }}" class="flex items-center">
                             <img src="{{ url_for('static', filename='images/main-logo.jpg') }}" alt="Green Sathi Logo"
-                                class="w-60 h-13 mt-10 border-2 border-farmer-green-300 shadow-md rounded-md">
+                                class="h-10 sm:h-12 md:h-14 w-auto object-contain border border-farmer-green-200 shadow-sm rounded-md transition-transform hover:scale-105">
                         </a>
 
                     </div>
-                    <div class="hidden md:ml-6 md:flex md:space-x-8">
+                    <div class="hidden lg:ml-8 lg:flex lg:space-x-6 items-center">
 
                         {% if current_user.is_authenticated %}
                         {% if current_user.user_role == 'farmer' %}
@@ -182,9 +182,9 @@
                     </div>
                 </div>
 
-                <div class="flex items-center">
+                <div class="flex items-center space-x-2 md:space-x-4 py-2">
                     {% if current_user.is_authenticated %}
-                    <div class="hidden md:flex items-center relative">
+                    <div class="hidden lg:flex items-center relative">
                         <div class="relative">
                             <button id="user-menu-button"
                                 class="flex items-center bg-farmer-green-100 hover:bg-farmer-green-200 text-farmer-green-800 px-3 py-1.5 rounded-md text-sm font-medium transition-colors focus:outline-none">
@@ -205,24 +205,24 @@
                                 </a>
                             </div>
                         </div>
-                        <div id="google_translate_element"></div>
+                        <div id="google_translate_element" class="ml-2 md:ml-4"></div>
                     </div>
                     {% else %}
-                    <div class="hidden md:flex items-center space-x-3">
+                    <div class="hidden lg:flex items-center space-x-3">
                         <a href="{{ url_for('login') }}"
                             class="bg-farmer-green-100 hover:bg-farmer-green-200 text-farmer-green-800 px-3 py-1.5 rounded-md text-sm font-medium transition-colors">Login</a>
                         <a href="{{ url_for('register') }}"
                             class="bg-farmer-green-600 hover:bg-farmer-green-700 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors">Register</a>
                     </div>
-                    <div id="google_translate_element"></div>
+                    <div id="google_translate_element" class="hidden md:block"></div>
                     {% endif %}
 
                     <!-- Mobile menu button -->
-                    <div class="md:hidden flex items-center ml-4">
+                    <div class="lg:hidden flex items-center ml-2">
                         <button type="button"
                             class="mobile-menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-farmer-green-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-farmer-green-500">
                             <span class="sr-only">Open main menu</span>
-                            <i class="fa-solid fa-bars"></i>
+                            <i class="fa-solid fa-bars text-xl"></i>
                         </button>
                     </div>
                 </div>
@@ -230,7 +230,7 @@
         </div>
 
         <!-- Mobile menu, hidden by default -->
-        <div class="mobile-menu hidden md:hidden border-t border-gray-200">
+        <div class="mobile-menu hidden lg:hidden border-t border-gray-200 absolute w-full bg-white z-40 shadow-lg">
             <div class="pt-2 pb-3 space-y-1">
                 <a href="{{ url_for('index') }}"
                     class="{% if request.path == url_for('index') %}bg-farmer-green-50 border-farmer-green-500 text-farmer-green-700{% else %}border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800{% endif %} block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
@@ -329,7 +329,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-farmer-green-800 text-white mt-12">
+    <footer class="bg-farmer-green-800 text-white mt-12 hidden lg:block">
         <div class="max-w-7xl mx-auto px-4 py-8">
             <div class="flex flex-col md:flex-row justify-between">
                 <div class="mb-6 md:mb-0">

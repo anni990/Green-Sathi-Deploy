@@ -4,9 +4,62 @@
 
 {% block extra_head %}
 <style>
+    /* Full screen layout overrides */
+    body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    nav {
+        flex-shrink: 0;
+    }
+
+    .flash-messages {
+        flex-shrink: 0;
+    }
+
+    main {
+        flex: 1;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    footer {
+        display: none !important;
+    }
+
+    .main-chat-container {
+        display: flex;
+        height: 100%;
+        width: 100%;
+    }
+
+    .chat-interface {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-width: 0;
+    }
+
     .chat-container {
-        height: calc(100vh - 250px);
-        min-height: 400px;
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    #chatInterface {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        border-radius: 0;
+        box-shadow: none;
     }
     
     .message-bubble {
@@ -115,11 +168,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="relative">
+<div class="main-chat-container">
     <!-- Main Chat Interface -->
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-        <!-- Chat Header -->
-        <div class="farmer-gradient text-white p-4">
+    <div class="chat-interface">
+        <div class="bg-white overflow-hidden flex flex-col h-full w-full">
+            <!-- Chat Header -->
+            <div class="farmer-gradient text-white p-4 shrink-0">
             <div class="flex items-center">
                 <div>
                     <h2 class="text-lg font-semibold">Chat Session History</h2>
@@ -186,6 +240,7 @@
                 </div>
             {% endif %}
         </div>
+    </div>
     </div>
 </div>
 {% endblock %}
