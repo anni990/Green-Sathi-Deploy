@@ -152,12 +152,23 @@ document.addEventListener('DOMContentLoaded', function () {
             chatItem.dataset.chatId = chat.id;
 
             const lastMessage = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
-            const preview = lastMessage ? lastMessage.text.substring(0, 50) + (lastMessage.text.length > 50 ? '...' : '') : 'New chat';
+            const isSoilChat = chat.chat_title === 'Soil Report Analysis' || chat.messages.some(msg => msg.input_type === 'soil_report');
+            const chatTitle = chat.chat_title || (isSoilChat ? 'Soil Report Analysis' : `Chat #${index + 1}`);
+            let preview = 'New chat';
+            if (lastMessage) {
+                if (lastMessage.input_type === 'soil_report') {
+                    preview = lastMessage.sender === 'user'
+                        ? 'Soil report uploaded'
+                        : 'Soil analysis completed';
+                } else {
+                    preview = lastMessage.text.substring(0, 50) + (lastMessage.text.length > 50 ? '...' : '');
+                }
+            }
 
             chatItem.innerHTML = `
                 <div class="flex justify-between items-start">
                     <div class="cursor-pointer" onclick="window.location.href='/chat?chat_id=${chat.id}&language=${chat.language}'">
-                        <div class="font-medium text-gray-900">Chat #${index + 1}</div>
+                        <div class="font-medium text-gray-900">${chatTitle}</div>
                         <div class="time">${new Date(chat.created_at).toLocaleString()}</div>
                     </div>
                     <div class="flex items-start">
@@ -327,6 +338,23 @@ document.addEventListener('DOMContentLoaded', function () {
         message = message.replace(/^\d+\.\s?(.+)/gm, '<br>$&');
 
         return message;
+    }
+
+    // Format previously stored bot text messages on refresh.
+    function renderStoredBotMarkdown() {
+        const storedBotMessages = document.querySelectorAll('.bot-message .formatted-message');
+        storedBotMessages.forEach((messageElement) => {
+            if (messageElement.querySelector('*')) {
+                return;
+            }
+
+            const rawMessage = messageElement.textContent;
+            if (!rawMessage) {
+                return;
+            }
+
+            messageElement.innerHTML = formatMessage(rawMessage);
+        });
     }
 
     // Add message to chat
@@ -765,6 +793,12 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('beforeunload', function () {
         cleanupFarmerCharacter();
     });
+
+    renderStoredBotMarkdown();
+
+    if (window.renderSoilChatPayloads) {
+        window.renderSoilChatPayloads(document);
+    }
 
     // Scroll to bottom of chat on page load
     scrollToBottom();

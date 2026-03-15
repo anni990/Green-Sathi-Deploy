@@ -43,6 +43,95 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
+def _to_float(value, default=0.0):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _soil_report_public_url(report_path):
+    if not report_path:
+        return None
+    normalized_path = report_path.replace('\\', '/')
+    if normalized_path.startswith('static/'):
+        return url_for('static', filename=normalized_path.replace('static/', '', 1))
+    return None
+
+
+SOIL_CHAT_PAYLOAD_PREFIX = '__SOIL_CHAT_PAYLOAD__:'
+
+
+def _serialize_soil_chat_payload(payload):
+    return f"{SOIL_CHAT_PAYLOAD_PREFIX}{json.dumps(payload, ensure_ascii=False)}"
+
+
+def _is_image_path(path):
+    ext = os.path.splitext(path or '')[1].lower()
+    return ext in ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.tiff']
+
+
+def _build_soil_upload_payload(report_path):
+    report_url = _soil_report_public_url(report_path)
+    return {
+        'type': 'soil_report_upload',
+        'title': 'Soil Report Analysis',
+        'report_url': report_url,
+        'file_name': os.path.basename(report_path or ''),
+        'preview_url': report_url if _is_image_path(report_path) else None
+    }
+
+
+def _build_soil_analysis_payload(soil_params, district, state, soil_type, recommended_crops, fertilizer_summary, fertilizer_report_id):
+    return {
+        'type': 'soil_report_analysis',
+        'title': 'Soil Report Analysis',
+        'district': district,
+        'state': state,
+        'soil_type': soil_type,
+        'soil_params': {
+            'ph': _to_float(soil_params.get('ph'), 7.0),
+            'ec': _to_float(soil_params.get('ec'), 0.5),
+            'organic_carbon': _to_float(soil_params.get('organic_carbon'), 0.5),
+            'nitrogen': _to_float(soil_params.get('nitrogen'), 250.0),
+            'phosphorus': _to_float(soil_params.get('phosphorus'), 30.0),
+            'potassium': _to_float(soil_params.get('potassium'), 40.0),
+            'zinc': _to_float(soil_params.get('zinc'), 1.0),
+            'copper': _to_float(soil_params.get('copper'), 0.5),
+            'iron': _to_float(soil_params.get('iron'), 4.0),
+            'manganese': _to_float(soil_params.get('manganese'), 2.0),
+            'sulphur': _to_float(soil_params.get('sulphur'), 20.0)
+        },
+        'recommended_crops': recommended_crops,
+        'fertilizer_summary': fertilizer_summary,
+        'fertilizer_report_url': url_for('fertilizer_report', report_id=fertilizer_report_id)
+    }
+
+
+def _create_soil_analysis_chat_messages(chat_id, user_id, user_payload=None, bot_payload=None):
+    system_user_id = get_or_create_system_user()
+
+    if user_payload is not None:
+        user_message = ChatMessage(
+            chat_id=chat_id,
+            user_id=user_id,
+            text=_serialize_soil_chat_payload(user_payload),
+            sender='user',
+            input_type='soil_report'
+        )
+        db.session.add(user_message)
+
+    if bot_payload is not None:
+        bot_message = ChatMessage(
+            chat_id=chat_id,
+            user_id=system_user_id,
+            text=_serialize_soil_chat_payload(bot_payload),
+            sender='bot',
+            input_type='soil_report'
+        )
+        db.session.add(bot_message)
+
 # MySQL Database Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}:{}/{}'.format(
     os.getenv('DB_USER'),
@@ -300,9 +389,12 @@ def get_chat_history():
             'id': chat.id,
             'created_at': chat.created_at.isoformat(),
             'language': chat.language,
+            'chat_title': 'Soil Report Analysis' if any(msg.input_type == 'soil_report' for msg in chat.messages) else None,
             'messages': [{
                 'text': msg.text,
-                'timestamp': msg.timestamp.isoformat()
+                'timestamp': msg.timestamp.isoformat(),
+                'sender': msg.sender,
+                'input_type': msg.input_type
             } for msg in chat.messages]
         } for chat in chats]
     })
@@ -367,10 +459,10 @@ def process_text():
         import traceback
         print(f"Error in process_text API: {str(e)}")
         print(traceback.format_exc())
-        
+
         # Return a user-friendly error message in the appropriate language
         error_message = "I'm sorry, I encountered an error. Please try again." if language == 'english' else "मुझे खेद है, मुझे एक त्रुटि मिली। कृपया पुनः प्रयास करें।"
-        
+
         return jsonify({
             'error': str(e),
             'response': error_message
@@ -988,27 +1080,6 @@ def analyze_soil_report():
     # Get user_id if authenticated
     user_id = current_user.id if current_user.is_authenticated else None
     
-    # Get the chat_id from the form or create a new chat session
-    chat_id = request.form.get('chat_id')
-    
-    # If no chat_id provided or it's invalid, create a new chat session
-    if not chat_id or chat_id == 'standalone' or chat_id == 'null' or chat_id == 'undefined':
-        try:
-            # Create a new chat session
-            new_chat = ChatSession(language=language, user_id=user_id)
-            db.session.add(new_chat)
-            db.session.flush()  # Flush to get the ID without committing
-            chat_id = new_chat.id
-            print(f"Created new chat session with ID: {chat_id}")
-        except Exception as e:
-            print(f"Error creating chat session: {e}")
-            return jsonify({'error': 'Failed to create chat session'}), 500
-    else:
-        # Verify the chat session exists
-        chat_session = db.session.get(ChatSession, chat_id)
-        if not chat_session:
-            return jsonify({'error': f'Chat session {chat_id} not found'}), 404
-    
     # Save file
     filename = f"{uuid.uuid4()}{os.path.splitext(soil_file.filename)[1]}"
     
@@ -1026,6 +1097,22 @@ def analyze_soil_report():
     if not success:
         # If conversion failed, return the error message
         return jsonify({'error': result}), 400
+
+    # Create a dedicated chat for this soil report request now so the second step can reuse it.
+    try:
+        new_chat = ChatSession(language=language, user_id=user_id)
+        db.session.add(new_chat)
+        db.session.flush()
+        chat_id = new_chat.id
+        _create_soil_analysis_chat_messages(
+            chat_id=chat_id,
+            user_id=user_id,
+            user_payload=_build_soil_upload_payload(file_path),
+            bot_payload=None
+        )
+    except Exception as e:
+        print(f"Error creating soil analysis chat session: {e}")
+        return jsonify({'error': 'Failed to create chat session'}), 500
     
     # Now result contains the image as a numpy array
     # Process soil report using Vertex AI Gemini Vision model
@@ -1069,6 +1156,7 @@ def analyze_soil_report():
         # If location information is missing, return what we have extracted so far 
         # so the frontend can show a popup to collect the missing information
         if missing_location:
+            db.session.commit()
             return jsonify({
                 'soil_params': soil_params,
                 'location': {
@@ -1079,7 +1167,8 @@ def analyze_soil_report():
                 },
                 'missing_location': True,
                 'report_path': file_path,
-                'language': language
+                'language': language,
+                'chat_id': chat_id
             })
         
         # Make sure all required parameters have at least default values
@@ -1158,7 +1247,7 @@ def analyze_soil_report():
         # Create a new SoilReport record in the database
         soil_report = SoilReport(
             user_id=user_id,
-            chat_id=chat_id,  # Use the valid chat_id we ensured above
+            chat_id=chat_id,
             report_path=file_path,
             district=final_district,
             state=final_state,
@@ -1182,6 +1271,23 @@ def analyze_soil_report():
         )
         
         db.session.add(soil_report)
+        db.session.flush()
+
+        bot_payload = _build_soil_analysis_payload(
+            soil_params=soil_params,
+            district=final_district,
+            state=final_state,
+            soil_type=soil_type,
+            recommended_crops=recommended_crops,
+            fertilizer_summary=fertilizer_rec,
+            fertilizer_report_id=soil_report.id
+        )
+        _create_soil_analysis_chat_messages(
+            chat_id=chat_id,
+            user_id=user_id,
+            user_payload=None,
+            bot_payload=bot_payload
+        )
         db.session.commit()
         
         # Prepare the response
@@ -1198,7 +1304,8 @@ def analyze_soil_report():
                 'fertilizer': fertilizer_rec
             },
             'crop_varieties': crop_variety_data,
-            'soil_report_id': soil_report.id  # Add the ID for the fertilizer report link
+            'soil_report_id': soil_report.id,  # Add the ID for the fertilizer report link
+            'chat_id': chat_id
         }
         print(result)
         
@@ -1473,23 +1580,29 @@ def complete_soil_analysis():
         # Get user_id if authenticated
         user_id = current_user.id if current_user.is_authenticated else None
         
-        # Get or create chat session
+        # Reuse chat_id from step-1 when provided; otherwise create a dedicated chat.
         chat_id = data.get('chat_id')
-        if not chat_id or chat_id == 'null' or chat_id == 'undefined':
-            try:
-                # Create a new chat session
-                new_chat = ChatSession(language=language, user_id=user_id)
-                db.session.add(new_chat)
-                db.session.flush()  # Flush to get the ID without committing
-                chat_id = new_chat.id
-            except Exception as e:
-                print(f"Error creating chat session: {e}")
-                return jsonify({'error': 'Failed to create chat session'}), 500
-        else:
-            # Verify the chat session exists
+        if chat_id and chat_id not in ['null', 'undefined', '']:
             chat_session = db.session.get(ChatSession, chat_id)
             if not chat_session:
                 return jsonify({'error': f'Chat session {chat_id} not found'}), 404
+            if current_user.is_authenticated and chat_session.user_id != current_user.id:
+                return jsonify({'error': 'You do not have permission to use this chat session'}), 403
+        else:
+            try:
+                new_chat = ChatSession(language=language, user_id=user_id)
+                db.session.add(new_chat)
+                db.session.flush()
+                chat_id = new_chat.id
+                _create_soil_analysis_chat_messages(
+                    chat_id=chat_id,
+                    user_id=user_id,
+                    user_payload=_build_soil_upload_payload(report_path),
+                    bot_payload=None
+                )
+            except Exception as e:
+                print(f"Error creating chat session: {e}")
+                return jsonify({'error': 'Failed to create chat session'}), 500
         
         
         # Make sure all required parameters have at least default values
@@ -1591,6 +1704,23 @@ def complete_soil_analysis():
         )
         
         db.session.add(soil_report)
+        db.session.flush()
+
+        bot_payload = _build_soil_analysis_payload(
+            soil_params=soil_params,
+            district=district,
+            state=state,
+            soil_type=soil_type,
+            recommended_crops=recommended_crops,
+            fertilizer_summary=fertilizer_rec,
+            fertilizer_report_id=soil_report.id
+        )
+        _create_soil_analysis_chat_messages(
+            chat_id=chat_id,
+            user_id=user_id,
+            user_payload=None,
+            bot_payload=bot_payload
+        )
         db.session.commit()
         
         # Prepare the response
@@ -1605,7 +1735,8 @@ def complete_soil_analysis():
                 'fertilizer': fertilizer_rec
             },
             'crop_varieties': crop_variety_data,
-            'soil_report_id': soil_report.id
+            'soil_report_id': soil_report.id,
+            'chat_id': chat_id
         }
         
         return jsonify(result)

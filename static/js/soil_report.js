@@ -183,6 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let videoStream = null;
     let facingMode = 'environment'; // Start with back camera
     let soilReportId = null;
+    let soilAnalysisChatId = null;
     
     // Check if language is passed as URL parameter
     const urlParams = new URLSearchParams(window.location.search);
@@ -496,6 +497,9 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('district', district);
         formData.append('state', state);
         formData.append('language', currentLanguage);
+        if (soilAnalysisChatId) {
+            formData.append('chat_id', soilAnalysisChatId);
+        }
         console.log("Form data prepared with language:", currentLanguage);
         
         // Process with API call
@@ -524,6 +528,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Check if location information is missing
             if (result.missing_location) {
                 console.log("Missing location information detected");
+                soilAnalysisChatId = result.chat_id || soilAnalysisChatId;
                 
                 // Hide loading indicator
                 loadingIndicator.classList.add('hidden');
@@ -549,6 +554,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
                 return;
             }
+
+            soilAnalysisChatId = result.chat_id || soilAnalysisChatId;
             
             // Display results if all required information is available
             console.log("All info available, displaying results");
@@ -1026,6 +1033,7 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadPreviewContainer.style.display = 'none';
         uploadedFile = null;
         capturedImage = null;
+        soilAnalysisChatId = null;
         districtInput.value = '';
         stateInput.value = '';
         
@@ -1103,7 +1111,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     district: district,
                     state: state,
                     language: currentLanguage,
-                    report_path: reportPath
+                    report_path: reportPath,
+                    chat_id: soilAnalysisChatId
                 };
                 
                 // Send the request to the new endpoint
@@ -1122,6 +1131,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 const result = await response.json();
+                soilAnalysisChatId = result.chat_id || soilAnalysisChatId;
                 
                 // Clean up the temp storage
                 if (soilParamsInput) document.body.removeChild(soilParamsInput);
