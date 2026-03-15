@@ -589,6 +589,12 @@ def process_image():
         return jsonify({'error': 'No image provided'}), 400
     
     image_file = request.files['image']
+    if not image_file.filename:
+        return jsonify({'error': 'No image file selected'}), 400
+
+    if not allowed_file(image_file.filename):
+        return jsonify({'error': 'Unsupported image format. Please upload png, jpg, jpeg, or gif.'}), 400
+
     language = request.form.get('language', 'hindi')
     chat_id = request.form.get('chat_id')
     
@@ -617,7 +623,9 @@ def process_image():
             return jsonify({'error': f'Chat session {chat_id} not found'}), 404
     
     # Save image
-    filename = f"{uuid.uuid4()}{os.path.splitext(image_file.filename)[1]}"
+    safe_name = secure_filename(image_file.filename)
+    file_ext = os.path.splitext(safe_name)[1].lower() or '.jpg'
+    filename = f"{uuid.uuid4()}{file_ext}"
     
     # Ensure directory exists
     image_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'images')
@@ -634,8 +642,22 @@ def process_image():
     # Analyze image
     try:
         result = analyze_plant_image(image_path, language)
-        
-        print(result)
+        if not isinstance(result, dict):
+            result = {}
+
+        try:
+            confidence_value = float(result.get('confidence', 0.0))
+        except (TypeError, ValueError):
+            confidence_value = 0.0
+
+        result_payload = {
+            'plant_type': str(result.get('plant_type', 'Unknown')),
+            'disease': str(result.get('disease', 'Uncertain')),
+            'confidence': confidence_value,
+            'recommendation': str(result.get('recommendation', 'Please try again with a clearer image.'))
+        }
+
+        print(result_payload)
 
         # Create user message - include image URL in the message for persistence
         user_message = ChatMessage(
@@ -650,7 +672,12 @@ def process_image():
         message_id = user_message.id
         
         # Create response text
-        response_text = f"Plant type: {result['plant_type']}\nDisease: {result['disease']}\nConfidence: {result['confidence']:.2f}\nRecommendation: {result['recommendation']}"
+        response_text = (
+            f"Plant type: {result_payload['plant_type']}\n"
+            f"Disease: {result_payload['disease']}\n"
+            f"Confidence: {result_payload['confidence']:.2f}\n"
+            f"Recommendation: {result_payload['recommendation']}"
+        )
         
         print(response_text)
 
@@ -669,10 +696,10 @@ def process_image():
             user_id=user_id,
             # message_id=message_id,
             image_path=image_path,
-            plant_type=result['plant_type'],
-            disease=result['disease'],
-            confidence=result['confidence'],
-            recommendation=result['recommendation']
+            plant_type=result_payload['plant_type'],
+            disease=result_payload['disease'],
+            confidence=result_payload['confidence'],
+            recommendation=result_payload['recommendation']
         )
         db.session.add(plant_image)
         db.session.commit()
@@ -684,7 +711,7 @@ def process_image():
             audio_url = url_for('static', filename=audio_path.replace('static/', ''))
         
         return jsonify({
-            'result': result,
+            'result': result_payload,
             'image_url': image_url,
             'audio_url': audio_url,
             'chat_id': chat_id  # Return the chat_id for client tracking

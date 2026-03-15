@@ -662,6 +662,11 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
+    function getNeedAudioPreference() {
+        // Some template variants do not render a readAloud checkbox.
+        return readAloud ? readAloud.checked : false;
+    }
+
     // Image form submission
     imageForm.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -690,14 +695,31 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData();
         formData.append('image', imageFile);
         formData.append('language', languageSelector.value);
-        formData.append('need_audio', readAloud.checked);
+        formData.append('need_audio', getNeedAudioPreference());
         formData.append('chat_id', getCurrentChatId());
 
         fetch('/api/process_image', {
             method: 'POST',
             body: formData
         })
-            .then(response => response.json())
+            .then(async response => {
+                const contentType = response.headers.get('content-type') || '';
+                const isJson = contentType.includes('application/json');
+                const payload = isJson ? await response.json() : await response.text();
+
+                if (!response.ok) {
+                    const errorMessage = isJson
+                        ? (payload.error || `Image API failed with status ${response.status}`)
+                        : `Image API failed with status ${response.status}`;
+                    throw new Error(errorMessage);
+                }
+
+                if (!isJson) {
+                    throw new Error('Image API returned a non-JSON response.');
+                }
+
+                return payload;
+            })
             .then(data => {
                 console.log("API response", data)
                 hideTypingIndicator();
