@@ -24,9 +24,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Form elements
     const imageForm = document.getElementById('imageForm');
+    const imageInput = document.getElementById('imageInput');
+    const imageFileName = document.getElementById('imageFileName');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewEmpty = document.getElementById('imagePreviewEmpty');
+    const imagePreviewWrapper = document.getElementById('imagePreviewWrapper');
+    const imagePreviewMeta = document.getElementById('imagePreviewMeta');
     const recordButton = document.getElementById('recordButton');
     const micIcon = document.getElementById('micIcon');
     const recordStatus = document.getElementById('recordStatus');
+    const recordStatusText = document.getElementById('recordStatusText');
+    const voiceVisualizer = document.getElementById('voiceVisualizer');
+    const recordActionText = document.getElementById('recordActionText');
+    const stopAudioButton = document.getElementById('stopAudioButton');
 
     // Character elements
     const character = document.querySelector('.farmer-assistant');
@@ -38,11 +48,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Farmer Character instance
     let farmerCharacter = null;
 
-    // Check if chat is active
+    // Check if chat is active - ALWAYS TRUE NOW since we auto-create
     function isChatActive() {
-        const chatInputContainer = document.querySelector('.chat-input-container');
-        const chatId = chatInputContainer ? chatInputContainer.getAttribute('data-chat-id') : null;
-        return chatId && chatId.trim() !== '';
+        return true;
     }
 
     // Show alert for no active chat
@@ -227,12 +235,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Tab switching
     function switchTab(tab) {
-        // Check if chat is active
-        if (!isChatActive()) {
-            showNoChatAlert();
-            return;
-        }
-
         // Remove active class from all tabs
         [tabText, tabVoice, tabImage].forEach(t => {
             t.classList.remove('active');
@@ -410,10 +412,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Update message handling to include chat_id
     async function handleUserMessage(message) {
         try {
-            const chatId = getCurrentChatId();
-            if (!chatId) {
-                throw new Error('No active chat session');
-            }
+            const chatId = getCurrentChatId() || '';
+
+            // Hide empty state if present
+            const emptyState = document.querySelector('.flex.items-center.justify-center.h-full');
+            if (emptyState) emptyState.style.display = 'none';
 
             addMessage(message, true);
 
@@ -438,6 +441,7 @@ document.addEventListener('DOMContentLoaded', function () {
             hideTypingIndicator();
 
             const data = await response.json();
+            console.log("Text API response:", data);
 
             if (!response.ok) {
                 console.error('Server error:', data.error);
@@ -447,6 +451,22 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.error) {
                 console.error('API error:', data.error);
                 throw new Error(data.error);
+            }
+
+            // Immediately apply URL update if this is a new chat
+            if (data.chat_id && !getCurrentChatId()) {
+                const newUrl = `/chat?chat_id=${data.chat_id}&language=${languageSelector.value}`;
+                console.log("Pushing new state for text chat:", newUrl);
+                
+                // Set history state
+                window.history.pushState({ path: newUrl }, '', newUrl);
+                
+                // Update elements
+                const chatInputContainer = document.querySelector('.chat-input-container');
+                if (chatInputContainer) chatInputContainer.setAttribute('data-chat-id', data.chat_id);
+                
+                // Try reloading chat history explicitly after some time to ensure sidebar recognizes
+                setTimeout(() => loadChatHistory(), 1000);
             }
 
             addMessage(data.response);
@@ -489,12 +509,6 @@ document.addEventListener('DOMContentLoaded', function () {
     textForm.addEventListener('submit', function (e) {
         e.preventDefault(); // Prevent the form from submitting normally
 
-        // Check if chat is active
-        if (!isChatActive()) {
-            showNoChatAlert();
-            return;
-        }
-
         const message = messageInput.value.trim();
         if (message) {
             handleUserMessage(message);
@@ -502,13 +516,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Prevent typing in message input when no active chat
-    messageInput.addEventListener('focus', function() {
-        if (!isChatActive()) {
-            this.blur();
-            showNoChatAlert();
-        }
-    });
+    // (Removed the prevent typing block since all states allow input to create a session)
 
     // Update event listeners
     newChatButton.addEventListener('click', createNewChat);
@@ -538,7 +546,48 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!url) return;
 
         audioPlayer.src = url;
-        audioPlayer.play();
+        setVoiceStatus('speaking');
+        audioPlayer.play().catch(() => {
+            setVoiceStatus('idle');
+        });
+    }
+
+    function setVoiceStatus(state) {
+        if (!recordStatus) return;
+
+        recordStatus.classList.remove('status-idle', 'status-listening', 'status-processing', 'status-speaking');
+        if (voiceVisualizer) {
+            voiceVisualizer.classList.remove('state-idle', 'state-listening', 'state-processing', 'state-speaking');
+        }
+
+        if (state === 'listening') {
+            if (recordStatusText) recordStatusText.textContent = 'Listening... Click Stop';
+            recordStatus.classList.add('status-listening');
+            if (voiceVisualizer) voiceVisualizer.classList.add('state-listening');
+            if (recordActionText) recordActionText.textContent = 'Stop';
+            return;
+        }
+
+        if (state === 'processing') {
+            if (recordStatusText) recordStatusText.textContent = 'Processing your voice...';
+            recordStatus.classList.add('status-processing');
+            if (voiceVisualizer) voiceVisualizer.classList.add('state-processing');
+            if (recordActionText) recordActionText.textContent = 'Start';
+            return;
+        }
+
+        if (state === 'speaking') {
+            if (recordStatusText) recordStatusText.textContent = 'AI is speaking...';
+            recordStatus.classList.add('status-speaking');
+            if (voiceVisualizer) voiceVisualizer.classList.add('state-speaking');
+            if (recordActionText) recordActionText.textContent = 'Start';
+            return;
+        }
+
+        if (recordStatusText) recordStatusText.textContent = 'Press Start to listen';
+        recordStatus.classList.add('status-idle');
+        if (voiceVisualizer) voiceVisualizer.classList.add('state-idle');
+        if (recordActionText) recordActionText.textContent = 'Start';
     }
 
 
@@ -546,6 +595,68 @@ document.addEventListener('DOMContentLoaded', function () {
     let mediaRecorder;
     let audioChunks = [];
     let isRecording = false;
+    let selectedPreviewUrl = null;
+
+    function clearSelectedImagePreview() {
+        if (selectedPreviewUrl) {
+            URL.revokeObjectURL(selectedPreviewUrl);
+            selectedPreviewUrl = null;
+        }
+
+        if (imagePreview) {
+            imagePreview.removeAttribute('src');
+        }
+
+        if (imagePreviewMeta) {
+            imagePreviewMeta.textContent = '';
+        }
+
+        if (imageFileName) {
+            imageFileName.textContent = 'No file chosen';
+        }
+
+        if (imagePreviewWrapper) {
+            imagePreviewWrapper.classList.add('hidden');
+        }
+
+        if (imagePreviewEmpty) {
+            imagePreviewEmpty.classList.remove('hidden');
+        }
+    }
+
+    function renderSelectedImagePreview(file) {
+        if (!file || !file.type || !file.type.startsWith('image/')) {
+            clearSelectedImagePreview();
+            return;
+        }
+
+        if (selectedPreviewUrl) {
+            URL.revokeObjectURL(selectedPreviewUrl);
+        }
+
+        selectedPreviewUrl = URL.createObjectURL(file);
+
+        if (imagePreview) {
+            imagePreview.src = selectedPreviewUrl;
+        }
+
+        if (imagePreviewMeta) {
+            const fileSizeKb = (file.size / 1024).toFixed(1);
+            imagePreviewMeta.textContent = `${file.name} (${fileSizeKb} KB)`;
+        }
+
+        if (imageFileName) {
+            imageFileName.textContent = file.name;
+        }
+
+        if (imagePreviewEmpty) {
+            imagePreviewEmpty.classList.add('hidden');
+        }
+
+        if (imagePreviewWrapper) {
+            imagePreviewWrapper.classList.remove('hidden');
+        }
+    }
 
     // If readAloud is changed, play the audio
     // readAloud.addEventListener('change', function() {
@@ -555,12 +666,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Start recording
     function startRecording() {
-        // Check if chat is active
-        if (!isChatActive()) {
-            showNoChatAlert();
-            return;
-        }
-
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
                 mediaRecorder = new MediaRecorder(stream);
@@ -583,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 recordButton.classList.remove('bg-farmer-green-600', 'hover:bg-farmer-green-700');
                 micIcon.classList.remove('fa-microphone');
                 micIcon.classList.add('fa-stop');
-                recordStatus.textContent = "Recording... Click to stop";
+                setVoiceStatus('listening');
 
                 // Add ripple effect
                 const ripple = document.createElement('div');
@@ -597,7 +702,10 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .catch(error => {
                 console.error('Error accessing microphone:', error);
-                recordStatus.textContent = "Error accessing microphone";
+                setVoiceStatus('idle');
+                if (recordStatusText) {
+                    recordStatusText.textContent = 'Microphone access denied';
+                }
             });
     }
 
@@ -612,7 +720,7 @@ document.addEventListener('DOMContentLoaded', function () {
             recordButton.classList.add('bg-farmer-green-600', 'hover:bg-farmer-green-700');
             micIcon.classList.add('fa-microphone');
             micIcon.classList.remove('fa-stop');
-            recordStatus.textContent = "Processing audio...";
+            setVoiceStatus('processing');
 
             // Remove ripple effect
             const ripple = recordButton.querySelector('.voice-ripple');
@@ -637,15 +745,32 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    if (stopAudioButton) {
+        stopAudioButton.addEventListener('click', function () {
+            location.reload(true);
+        });
+    }
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function () {
+            const selectedFile = imageInput.files && imageInput.files[0] ? imageInput.files[0] : null;
+            renderSelectedImagePreview(selectedFile);
+        });
+    }
+
     // Send audio to server
     function sendAudioToServer(audioBlob) {
         const formData = new FormData();
         formData.append('audio', audioBlob);
         formData.append('language', languageSelector.value);
-        formData.append('chat_id', getCurrentChatId());
+        formData.append('chat_id', getCurrentChatId() || '');
 
         // Show typing indicator
         showTypingIndicator();
+
+        // Hide empty state if present
+        const emptyState = document.querySelector('.flex.items-center.justify-center.h-full');
+        if (emptyState) emptyState.style.display = 'none';
 
         fetch('/api/process_voice', {
             method: 'POST',
@@ -655,6 +780,15 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 console.log("API response", data)
                 hideTypingIndicator();
+
+                // If a new chat session was created, update URL and state without reloading
+                if (data.chat_id && !getCurrentChatId()) {
+                    const newUrl = `/chat?chat_id=${data.chat_id}&language=${languageSelector.value}`;
+                    window.history.pushState({ path: newUrl }, '', newUrl);
+                    
+                    const chatInputContainer = document.querySelector('.chat-input-container');
+                    if (chatInputContainer) chatInputContainer.setAttribute('data-chat-id', data.chat_id);
+                }
 
                 // Add transcribed text as user message
                 if (data.transcribed_text) {
@@ -670,9 +804,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (data.audio_url) {
                     console.log(data.audio_url)
                     playAudio(data.audio_url);
+                } else {
+                    setVoiceStatus('idle');
                 }
 
-                recordStatus.textContent = "Press to start recording";
+                if (!data.audio_url) {
+                    setVoiceStatus('idle');
+                }
 
                 // Reload chat history
                 loadChatHistory();
@@ -680,7 +818,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => {
                 console.error('Error:', error);
                 hideTypingIndicator();
-                recordStatus.textContent = "Error processing audio";
+                setVoiceStatus('idle');
                 addMessage("Sorry, there was an error processing your voice. Please try again.");
 
                 // Set character back to idle on error
@@ -688,6 +826,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     farmerCharacter.setState(farmerCharacter.states.IDLE);
                 }
             });
+    }
+
+    if (audioPlayer) {
+        audioPlayer.addEventListener('ended', function () {
+            setVoiceStatus('idle');
+        });
+
+        audioPlayer.addEventListener('pause', function () {
+            if (audioPlayer.ended) return;
+            setVoiceStatus('idle');
+        });
     }
 
     function getNeedAudioPreference() {
@@ -699,13 +848,7 @@ document.addEventListener('DOMContentLoaded', function () {
     imageForm.addEventListener('submit', function (e) {
         e.preventDefault();
 
-        // Check if chat is active
-        if (!isChatActive()) {
-            showNoChatAlert();
-            return;
-        }
-
-        const imageFile = document.getElementById('imageInput').files[0];
+        const imageFile = imageInput && imageInput.files ? imageInput.files[0] : null;
         if (!imageFile) {
             alert('Please select an image file');
             return;
@@ -717,14 +860,21 @@ document.addEventListener('DOMContentLoaded', function () {
         // Add user message with image
         addMessage("Plant image uploaded for diagnosis", true, imageUrl);
 
+        // Hide empty state if present
+        const emptyState = document.querySelector('.flex.items-center.justify-center.h-full');
+        if (emptyState) emptyState.style.display = 'none';
+
         // Show typing indicator
         showTypingIndicator();
+
+        // Return to the compact text tab so analysis responses stay in full view.
+        switchTab(tabText);
 
         const formData = new FormData();
         formData.append('image', imageFile);
         formData.append('language', languageSelector.value);
         formData.append('need_audio', getNeedAudioPreference());
-        formData.append('chat_id', getCurrentChatId());
+        formData.append('chat_id', getCurrentChatId() || '');
 
         fetch('/api/process_image', {
             method: 'POST',
@@ -752,6 +902,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log("API response", data)
                 hideTypingIndicator();
 
+                // If a new chat session was created, update URL and state
+                if (data.chat_id && !getCurrentChatId()) {
+                    const newUrl = `/chat?chat_id=${data.chat_id}&language=${languageSelector.value}`;
+                    window.history.pushState({ path: newUrl }, '', newUrl);
+                    
+                    const chatInputContainer = document.querySelector('.chat-input-container');
+                    if (chatInputContainer) chatInputContainer.setAttribute('data-chat-id', data.chat_id);
+                }
+
                 if (data.result) {
                     const resultText = `Plant type: ${data.result.plant_type}\nDisease: ${data.result.disease}\nConfidence: ${(data.result.confidence * 100).toFixed(1)}%\nRecommendation: ${data.result.recommendation}`;
 
@@ -777,6 +936,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Reset form
                 imageForm.reset();
+                clearSelectedImagePreview();
 
                 // Reload chat history
                 loadChatHistory();
@@ -786,6 +946,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 hideTypingIndicator();
                 addMessage("Sorry, there was an error analyzing your image. Please try again.");
                 imageForm.reset();
+                clearSelectedImagePreview();
             });
     });
 
@@ -802,4 +963,5 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Scroll to bottom of chat on page load
     scrollToBottom();
+    setVoiceStatus('idle');
 });

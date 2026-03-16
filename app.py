@@ -427,15 +427,25 @@ def process_text():
         # Get user_id if authenticated
         user_id = current_user.id if current_user.is_authenticated else None
         
-        if not chat_id:
-            return jsonify({'error': 'No chat session specified'}), 400
-        
-        try:
+        # Validate chat_id to avoid foreign key constraint errors
+        if not chat_id or chat_id == 'null' or chat_id == 'undefined':
+            # Create a new chat session if none is specified
+            try:
+                new_chat = ChatSession(language=language, user_id=user_id)
+                db.session.add(new_chat)
+                db.session.commit()
+                chat_id = new_chat.id
+                print(f"Created new chat session with ID: {chat_id}")
+            except Exception as e:
+                print(f"Error creating chat session: {e}")
+                return jsonify({'error': 'Failed to create chat session'}), 500
+        else:
             # Verify that the chat session exists
             chat_session = db.session.get(ChatSession, chat_id)
             if not chat_session:
                 return jsonify({'error': f'Chat session {chat_id} not found'}), 404
-            
+
+        try:
             # Save user message
             user_message = ChatMessage(
                 chat_id=chat_id,
@@ -464,6 +474,7 @@ def process_text():
             
             return jsonify({
                 'response': response,
+                'chat_id': chat_id,
                 'audio_url': None  # Add audio URL if needed
             })
         except Exception as db_error:
